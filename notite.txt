@@ -1,0 +1,14 @@
+smart interview coach
+https://interviewprep-ai.com/
+
+Etape: 
+1. Requirements and planning
+	Around 1k users using the app at the same time.
+	Capabilities:
+		- User can register account.
+		- User can login.
+		- User can upload CV.
+		- User can create chat with interview coach.
+		- The interview will occur as text messages, with the assistant messages being also heard as speech.
+		- LLM will give feedback and a grade for the response.
+2. Capacity Planning
