@@ -1,0 +1,5 @@
+*.env
+G*I.md
+backend/UserContextualizer/target/
+backend/UserContextualizer/.idea/
+backend/UserContextualizer/HELP.md
