@@ -1,6 +1,7 @@
 package com.sorychan.usercontextualizer.controller
 
 import com.sorychan.usercontextualizer.service.CVService
+import com.sorychan.usercontextualizer.service.S3StorageService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -13,7 +14,8 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/llm/v1")
 class LLMController(
     chatClientBuilder: ChatClient.Builder,
-    private val cvService: CVService
+    private val cvService: CVService,
+    private val storageService: S3StorageService
 ) {
 
     private val chatClient: ChatClient = chatClientBuilder.build()
@@ -68,7 +70,7 @@ class LLMController(
         val extractedText = cvService.extractTextFromPdf(resource)
         val summary = cvService.analyzeCV(extractedText)
 
-        // TODO: Salvare fișier in MinIO aici
+        storageService.uploadFile(file)
 
         return ResponseEntity.ok(summary)
     }
