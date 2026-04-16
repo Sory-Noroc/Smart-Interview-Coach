@@ -4,6 +4,8 @@ import com.sorychan.usercontextualizer.service.CVService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -47,21 +49,28 @@ class LLMController(
     /**
      * Upload a CV (PDF), extract its text, clean it and analyze it.
      */
-    @PostMapping("/analyze-cv")
-    fun analyzeCVUpload(@RequestParam("file") file: MultipartFile): String {
-        logger.info("Received CV upload: ${file.originalFilename}")
-        
-        if (file.isEmpty) {
-            return "File is empty"
-        }
-        
-        if (file.contentType != "application/pdf") {
-            return "Only PDF files are supported"
+    @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun uploadCV(
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam("userId") userId: String
+    ): ResponseEntity<String> {
+
+        if (file.isEmpty || file.contentType != "application/pdf") {
+            return ResponseEntity.badRequest().body("Invalid PDF File.")
         }
 
-        val extractedText = cvService.extractTextFromPdf(file.resource)
+        if (!cvService.isRealPdf(file)) {
+            logger.warn("Potential malicious PDF file in upload.")
+            return ResponseEntity.badRequest().body("Incorrect File Content Detected.")
+        }
 
-        return cvService.analyzeCV(extractedText)
+        val resource = file.resource
+        val extractedText = cvService.extractTextFromPdf(resource)
+        val summary = cvService.analyzeCV(extractedText)
+
+        // TODO: Salvare fișier in MinIO aici
+
+        return ResponseEntity.ok(summary)
     }
 }
 

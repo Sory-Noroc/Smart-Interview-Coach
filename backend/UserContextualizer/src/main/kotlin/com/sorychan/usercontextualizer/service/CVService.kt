@@ -6,12 +6,29 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class CVService(chatClientBuilder: ChatClient.Builder) {
 
     private val chatClient = chatClientBuilder.build()
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    /**
+     * Verifies if first characters of the file are actual PDF encodings.
+     * Protects against malicious files with .pdf extension.
+     */
+    fun isRealPdf(file: MultipartFile): Boolean {
+        file.inputStream.use { inputStream ->
+            val header = ByteArray(5)
+            val bytesRead = inputStream.read(header)
+
+            if (bytesRead < 5) return false
+
+            val headerString = String(header, Charsets.US_ASCII)
+            return headerString == "%PDF-"
+        }
+    }
 
     /**
      * Extracts text from a PDF resource.
