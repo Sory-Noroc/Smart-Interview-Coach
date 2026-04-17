@@ -1,5 +1,7 @@
 package com.sorychan.usercontextualizer.controller
 
+import com.sorychan.usercontextualizer.data.JobDao
+import com.sorychan.usercontextualizer.repository.JobRepository
 import com.sorychan.usercontextualizer.service.CVService
 import com.sorychan.usercontextualizer.service.S3StorageService
 import org.slf4j.Logger
@@ -15,7 +17,8 @@ import org.springframework.web.multipart.MultipartFile
 class LLMController(
     chatClientBuilder: ChatClient.Builder,
     private val cvService: CVService,
-    private val storageService: S3StorageService
+    private val storageService: S3StorageService,
+    private val jobRepo: JobRepository
 ) {
 
     private val chatClient: ChatClient = chatClientBuilder.build()
@@ -51,7 +54,7 @@ class LLMController(
     /**
      * Upload a CV (PDF), extract its text, clean it and analyze it.
      */
-    @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/upload-cv", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadCV(
         @RequestParam("file") file: MultipartFile,
         @RequestParam("userId") userId: String
@@ -73,6 +76,25 @@ class LLMController(
         storageService.uploadFile(file)
 
         return ResponseEntity.ok(summary)
+    }
+
+    @PostMapping("/upload-job")
+    fun uploadDescription(
+        @RequestParam jobName: String,
+        @RequestParam description: String,
+        @RequestParam userId: String
+    ): ResponseEntity<String> {
+        val job = JobDao(
+            jobName = jobName,
+            description = description,
+            userId = userId
+        )
+        try {
+            jobRepo.save(job)
+            return ResponseEntity.ok("The job '$jobName' was saved.")
+        } catch (e: Exception) {
+            return ResponseEntity.badRequest().body(e.message)
+        }
     }
 }
 
