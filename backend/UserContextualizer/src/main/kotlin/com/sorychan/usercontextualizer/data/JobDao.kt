@@ -1,0 +1,20 @@
+package com.sorychan.usercontextualizer.data
+
+import jakarta.persistence.*
+
+@Entity
+@Table(name = "jobs")
+class JobDao(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
+
+    @Column(name = "job_name", nullable = false)
+    val jobName: String = "",
+
+    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    val description: String = "",
+
+    @Column(name = "user_id", nullable = false)
+    val userId: String = ""
+)
