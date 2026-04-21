@@ -11,6 +11,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import reactor.core.publisher.Flux
 
 @RestController
 @RequestMapping("/llm/v1")
@@ -49,6 +50,19 @@ class LLMController(
             .user(promptRequest.prompt)
             .call()
             .content() ?: ""
+    }
+
+    @PostMapping("interview/{interviewId}/answer", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun answerQuestion(
+        @PathVariable interviewId: String,
+        @RequestBody userMessage: String
+    ): Flux<String> {
+        // Todo: Save message in db and prompt/call ai with conversation history
+
+        return chatClient.prompt()
+            .user(userMessage)
+            .stream()
+            .content()
     }
 
     /**
