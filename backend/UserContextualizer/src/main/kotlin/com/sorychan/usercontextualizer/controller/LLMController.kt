@@ -1,6 +1,6 @@
 package com.sorychan.usercontextualizer.controller
 
-import com.sorychan.usercontextualizer.data.JobDao
+import com.sorychan.usercontextualizer.data.Job
 import com.sorychan.usercontextualizer.repository.JobRepository
 import com.sorychan.usercontextualizer.service.CVService
 import com.sorychan.usercontextualizer.service.S3StorageService
@@ -52,13 +52,20 @@ class LLMController(
             .content() ?: ""
     }
 
-    @PostMapping("interview/{interviewId}/answer", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @PostMapping("/interviews")
+    fun createInterview(@RequestParam userId: Int, @RequestParam name: String): ResponseEntity<Int> {
+        // Todo: Create a db table(dao object) for interviews/chats and create an entry
+        logger.info("/interviews called with user id: $userId, name: $name")
+        return ResponseEntity.ok(0)
+    }
+
+    @PostMapping("/interviews/{interviewId}/answer", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun answerQuestion(
         @PathVariable interviewId: String,
         @RequestBody userMessage: String
     ): Flux<String> {
         // Todo: Save message in db and prompt/call ai with conversation history
-
+        logger.info("/interviews called with interviewId: $interviewId, name: $userMessage")
         return chatClient.prompt()
             .user(userMessage)
             .stream()
@@ -88,6 +95,7 @@ class LLMController(
         val summary = cvService.analyzeCV(extractedText)
 
         storageService.uploadFile(file)
+        // Todo: Add to the database userId and cv file name
 
         return ResponseEntity.ok(summary)
     }
@@ -98,7 +106,7 @@ class LLMController(
         @RequestParam description: String,
         @RequestParam userId: String
     ): ResponseEntity<String> {
-        val job = JobDao(
+        val job = Job(
             jobName = jobName,
             description = description,
             userId = userId
