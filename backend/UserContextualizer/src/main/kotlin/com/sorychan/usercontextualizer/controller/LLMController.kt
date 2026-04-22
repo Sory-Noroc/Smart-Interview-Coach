@@ -1,6 +1,10 @@
 package com.sorychan.usercontextualizer.controller
 
+import com.sorychan.usercontextualizer.data.CV
 import com.sorychan.usercontextualizer.data.Job
+import com.sorychan.usercontextualizer.repository.CVRepository
+import com.sorychan.usercontextualizer.repository.InterviewMessageRepository
+import com.sorychan.usercontextualizer.repository.InterviewRepository
 import com.sorychan.usercontextualizer.repository.JobRepository
 import com.sorychan.usercontextualizer.service.CVService
 import com.sorychan.usercontextualizer.service.S3StorageService
@@ -19,7 +23,10 @@ class LLMController(
     chatClientBuilder: ChatClient.Builder,
     private val cvService: CVService,
     private val storageService: S3StorageService,
-    private val jobRepo: JobRepository
+    private val jobRepo: JobRepository,
+    private val interviewRepo: InterviewRepository,
+    private val interviewMessageRepo: InterviewMessageRepository,
+    private val cvRepo: CVRepository,
 ) {
 
     private val chatClient: ChatClient = chatClientBuilder.build()
@@ -78,7 +85,7 @@ class LLMController(
     @PostMapping("/upload-cv", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadCV(
         @RequestParam("file") file: MultipartFile,
-        @RequestParam("userId") userId: String
+        @RequestParam("userId") userId: Long
     ): ResponseEntity<String> {
 
         if (file.isEmpty || file.contentType != "application/pdf") {
@@ -95,9 +102,18 @@ class LLMController(
         val summary = cvService.analyzeCV(extractedText)
 
         storageService.uploadFile(file)
-        // Todo: Add to the database userId and cv file name
 
-        return ResponseEntity.ok(summary)
+        try {
+            val newCV = CV(
+                fileName = resource.filename!!,
+                userId = userId
+            )
+            cvRepo.save(newCV)
+            return ResponseEntity.ok(summary)
+        } catch (e: NullPointerException) {
+            logger.error("Null PDF filename! Error message: ${e.toString()}")
+            return ResponseEntity.badRequest().body("Null PDF file name!")
+        }
     }
 
     @PostMapping("/upload-job")
