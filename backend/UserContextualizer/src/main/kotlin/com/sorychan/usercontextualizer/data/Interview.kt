@@ -1,5 +1,6 @@
 package com.sorychan.usercontextualizer.data
 
+import com.sorychan.usercontextualizer.enums.InterviewStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -18,10 +19,13 @@ class Interview(
     var id: Long? = null,
 
     @Column(name = "user_id", nullable = false)
-    var userId: Long,
+    var userId: Long? = null,
 
     @Column(name = "name", nullable = false)
-    var name: String,
+    var name: String = "",
+
+    @Column(name = "context", columnDefinition = "TEXT", nullable = false)
+    var context: String = "",
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -30,7 +34,3 @@ class Interview(
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now()
 )
-
-enum class InterviewStatus {
-    STARTED, IN_PROGRESS, COMPLETED, CANCELLED
-}

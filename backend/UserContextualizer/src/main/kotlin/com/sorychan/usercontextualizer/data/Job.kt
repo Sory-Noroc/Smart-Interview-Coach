@@ -9,12 +9,13 @@ class Job(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(name = "user_id", nullable = false)
+    val userId: Long = 0L,
+
     @Column(name = "job_name", nullable = false)
-    val jobName: String,
+    val jobName: String = "",
 
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
-    val description: String,
+    val description: String = ""
 
-    @Column(name = "user_id", nullable = false)
-    val userId: String
 )

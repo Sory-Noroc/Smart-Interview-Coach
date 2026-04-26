@@ -1,5 +1,6 @@
 package com.sorychan.usercontextualizer.data
 
+import com.sorychan.usercontextualizer.enums.Role
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -20,14 +21,14 @@ class InterviewMessage(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interview_id", nullable = false)
-    var interview: Interview,
+    var interview: Interview = Interview(),
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    var content: String,
+    var content: String = "",
 
-    // "user" sau "assistant"
     @Column(name = "role", nullable = false)
-    var role: String,
+    var role: Role = Role.USER,
 
+    @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now()
 )
