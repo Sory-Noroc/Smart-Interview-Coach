@@ -3,3 +3,5 @@ G*I.md
 backend/UserContextualizer/target/
 backend/UserContextualizer/.idea/
 backend/UserContextualizer/HELP.md
+backend/UserContextualizer/src/main/kotlin/com/sorychan/usercontextualizer/dbscript
+backend/UserContextualizer/src/main/kotlin/com/sorychan/usercontextualizer/minioscript

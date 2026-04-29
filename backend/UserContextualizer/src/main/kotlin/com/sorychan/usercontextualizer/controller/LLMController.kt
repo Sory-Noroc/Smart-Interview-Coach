@@ -11,8 +11,8 @@ import com.sorychan.usercontextualizer.repository.InterviewMessageRepository
 import com.sorychan.usercontextualizer.repository.InterviewRepository
 import com.sorychan.usercontextualizer.repository.JobRepository
 import com.sorychan.usercontextualizer.service.CVService
+import com.sorychan.usercontextualizer.service.InterviewService
 import com.sorychan.usercontextualizer.service.S3StorageService
-import com.sorychan.usercontextualizer.utils.InterviewUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -33,6 +33,7 @@ class LLMController(
     chatClientBuilder: ChatClient.Builder,
     private val cvService: CVService,
     private val storageService: S3StorageService,
+    private val interviewService: InterviewService,
     private val jobRepo: JobRepository,
     private val interviewRepo: InterviewRepository,
     private val interviewMessageRepo: InterviewMessageRepository,
@@ -80,10 +81,10 @@ class LLMController(
         val userCV = cvRepo.findLatestCVByUserId(userId)
         val job = jobRepo.findJobByUserId(userId)
 
-        val systemContext = InterviewUtils.injectionProtectionPrompt +
-                InterviewUtils.getInterviewPrompt(interviewerJob) +
-                InterviewUtils.concatenateUserCV(userCV?.content) +
-                InterviewUtils.concatenateJobContext(job)
+        val systemContext =  interviewService.injectionProtectionPrompt +
+                 interviewService.getInterviewPrompt(interviewerJob) +
+                 interviewService.concatenateUserCV(userCV?.content) +
+                 interviewService.concatenateJobContext(job)
 
         val newInterview = Interview(
             userId = userId,
