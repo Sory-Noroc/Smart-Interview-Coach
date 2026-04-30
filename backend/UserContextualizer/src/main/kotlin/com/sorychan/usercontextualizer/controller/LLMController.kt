@@ -20,6 +20,7 @@ import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -106,6 +107,30 @@ class LLMController(
         )
         interviewMessageRepo.save(aiMessage)
         return ResponseEntity.ok(firstQuestion)
+    }
+
+    @PostMapping("/interviews/{id}/user/{userId}/finish")
+    fun finishInterview(
+        @PathVariable id: Long,
+        @PathVariable userId: Long
+    ): ResponseEntity<String> {
+        val history = interviewMessageRepo.findMessagesByInterviewId(id)
+        if (history.isEmpty()) {
+            return ResponseEntity.badRequest().body("There is no interview with id $id.")
+        }
+
+        val messages = mutableListOf<Message>()
+        messages.add(SystemMessage(interviewService.injectionProtectionPrompt))
+        messages.add(SystemMessage(interviewService.getInterviewFeedbackPrompt()))
+        history.forEach {
+            if (it.role == Role.USER) messages.add(UserMessage("Interviewee: ${it.content}"))
+                else messages.add(AssistantMessage("Interviewer: ${it.content}"))
+        }
+        val feedback = chatClient.prompt()
+            .messages(messages)
+            .call()
+            .content() ?: "Could not generate feedback."
+        return ResponseEntity.ok(feedback)
     }
 
     @PostMapping("/interviews/{interviewId}/user/{userId}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
