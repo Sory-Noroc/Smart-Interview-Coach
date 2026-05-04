@@ -5,6 +5,7 @@ import com.sorychan.usercontextualizer.data.Interview
 import com.sorychan.usercontextualizer.data.InterviewMessage
 import com.sorychan.usercontextualizer.data.Job
 import com.sorychan.usercontextualizer.dto.FirstQuestionDTO
+import com.sorychan.usercontextualizer.dto.InterviewFeedbackDTO
 import com.sorychan.usercontextualizer.enums.Role
 import com.sorychan.usercontextualizer.repository.CVRepository
 import com.sorychan.usercontextualizer.repository.InterviewMessageRepository
@@ -20,6 +21,7 @@ import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.ai.converter.BeanOutputConverter
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -114,22 +116,28 @@ class LLMController(
         @PathVariable id: Long,
         @PathVariable userId: Long
     ): ResponseEntity<String> {
+        val interview = interviewRepo.findById(id).orElseThrow()
         val history = interviewMessageRepo.findMessagesByInterviewId(id)
-        if (history.isEmpty()) {
-            return ResponseEntity.badRequest().body("There is no interview with id $id.")
-        }
+
+        val converter = BeanOutputConverter(InterviewFeedbackDTO::class.java)
 
         val messages = mutableListOf<Message>()
-        messages.add(SystemMessage(interviewService.injectionProtectionPrompt))
-        messages.add(SystemMessage(interviewService.getInterviewFeedbackPrompt()))
+        messages.add(SystemMessage(
+            interviewService.injectionProtectionPrompt +
+                interviewService.getInterviewFeedbackPrompt(converter.format))
+        )
         history.forEach {
-            if (it.role == Role.USER) messages.add(UserMessage("Interviewee: ${it.content}"))
-                else messages.add(AssistantMessage("Interviewer: ${it.content}"))
+            if (it.role == Role.USER) messages.add(UserMessage("${it.content}"))
+                else messages.add(AssistantMessage("${it.content}"))
         }
+        logger.debug("Prompt for rating: {}", messages)
+
         val feedback = chatClient.prompt()
             .messages(messages)
             .call()
             .content() ?: "Could not generate feedback."
+
+//        val feedbackJson = converter.convert(feedback)
         return ResponseEntity.ok(feedback)
     }
 

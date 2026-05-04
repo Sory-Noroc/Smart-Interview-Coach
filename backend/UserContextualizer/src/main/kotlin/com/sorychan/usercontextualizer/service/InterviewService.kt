@@ -36,20 +36,12 @@ class InterviewService {
         return "\n \tJOB DESCRIPTION\t \nJob Title: ${job.jobName}\nDescription: ${job.description}\n"
     }
 
-    fun getInterviewFeedbackPrompt(): String {
+    fun getInterviewFeedbackPrompt(jsonFormat: String): String {
         return """
-    3         You are an expert Interview Coach.
-    4         Analyze the provided interview transcript between the Interviewer (AI) and the Interviewee (User).
-    5
-    6         Provide a detailed evaluation based on:
-    7         1. Technical Accuracy: Did the user answer technical questions correctly?
-    8         2. Communication Skills: Was the user clear, professional, and concise?
-    9         3. Areas for Improvement: Specific advice on what the user should change.
-   10
-   11         Final Requirement:
-   12         - Provide a final grade out of 10 (e.g., 7.5/10).
-   13         - Keep the tone professional but encouraging.
-   14         - Be specific! Reference actual answers from the transcript.
-   15     """.trimIndent()
+            You are an expert Interview Coach.
+            Analyze the provided interview transcript between the Interviewer (AI) and the Interviewee (User).
+            Analyze the transcript and provide feedback in JSON format.
+            $jsonFormat
+            """.trimIndent()
     }
 }
