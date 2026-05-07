@@ -1,6 +1,6 @@
 package com.sorychan.usercontextualizer.pdfs
 
-import com.sorychan.usercontextualizer.service.CVService
+import com.sorychan.usercontextualizer.service.ContextService
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -12,13 +12,13 @@ import org.springframework.core.io.ClassPathResource
 class PDFExtractionIT {
 
     @Autowired
-    private lateinit var cvService: CVService
+    private lateinit var contextService: ContextService
 
     @Test
     fun `should extract real text from PDF file`() {
         val resource = ClassPathResource("Overleaf_CV.pdf")
 
-        val text = cvService.extractTextFromPdf(resource)
+        val text = contextService.extractTextFromPdf(resource)
 
         assertFalse(text.isBlank())
         assertTrue(text.contains("cloud", ignoreCase = true))

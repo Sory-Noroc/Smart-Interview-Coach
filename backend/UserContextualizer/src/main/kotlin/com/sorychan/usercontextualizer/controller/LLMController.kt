@@ -8,9 +8,7 @@ import com.sorychan.usercontextualizer.dto.FirstQuestionDTO
 import com.sorychan.usercontextualizer.dto.InterviewFeedbackDTO
 import com.sorychan.usercontextualizer.enums.InterviewStatus
 import com.sorychan.usercontextualizer.enums.Role
-import com.sorychan.usercontextualizer.repository.CVRepository
-import com.sorychan.usercontextualizer.repository.JobRepository
-import com.sorychan.usercontextualizer.service.CVService
+import com.sorychan.usercontextualizer.service.ContextService
 import com.sorychan.usercontextualizer.service.InterviewService
 import com.sorychan.usercontextualizer.service.S3StorageService
 import org.slf4j.Logger
@@ -32,11 +30,9 @@ import java.util.concurrent.CompletableFuture
 @RequestMapping("/llm/v1")
 class LLMController(
     chatClientBuilder: ChatClient.Builder,
-    private val cvService: CVService,
+    private val contextService: ContextService,
     private val storageService: S3StorageService,
-    private val interviewService: InterviewService,
-    private val jobRepo: JobRepository,
-    private val cvRepo: CVRepository,
+    private val interviewService: InterviewService
 ) {
 
     val MESSAGE_COUNT = 16 // Taking only last xx messages of an interview
@@ -78,8 +74,8 @@ class LLMController(
     ): ResponseEntity<FirstQuestionDTO> {
         logger.info("/interviews called with user id: $userId, name: $name")
 
-        val userCV = cvRepo.findLatestCVByUserId(userId)
-        val job = jobRepo.findJobByUserId(userId)
+        val userCV = contextService.getLatestCV(userId)
+        val job = contextService.getJobByUserId(userId)
 
         val systemContext =  interviewService.injectionProtectionPrompt +
                  interviewService.getInterviewPrompt(interviewerJob) +
@@ -204,14 +200,14 @@ class LLMController(
             return ResponseEntity.badRequest().body("Invalid PDF File.")
         }
 
-        if (!cvService.isRealPdf(file)) {
+        if (!contextService.isRealPdf(file)) {
             logger.warn("Potential malicious PDF file in upload.")
             return ResponseEntity.badRequest().body("Incorrect File Content Detected.")
         }
 
         val resource = file.resource
-        val extractedText = cvService.extractTextFromPdf(resource)
-        val summary = cvService.analyzeCV(extractedText)
+        val extractedText = contextService.extractTextFromPdf(resource)
+        val summary = contextService.analyzeCV(extractedText)
 
         storageService.uploadFile(file)
 
@@ -221,7 +217,7 @@ class LLMController(
                 userId = userId,
                 content = summary
             )
-            cvRepo.save(newCV)
+            contextService.addCV(newCV)
             return ResponseEntity.ok(summary)
         } catch (e: NullPointerException) {
             logger.error("Null PDF filename! Error message: ${e.toString()}")
@@ -241,7 +237,7 @@ class LLMController(
             userId = userId
         )
         try {
-            jobRepo.save(job)
+            contextService.addJobDescription(job)
             return ResponseEntity.ok("The job '$jobName' was saved.")
         } catch (e: Exception) {
             return ResponseEntity.badRequest().body(e.message)

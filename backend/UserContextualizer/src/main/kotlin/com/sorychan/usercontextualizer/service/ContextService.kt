@@ -1,5 +1,9 @@
 package com.sorychan.usercontextualizer.service
 
+import com.sorychan.usercontextualizer.data.CV
+import com.sorychan.usercontextualizer.data.Job
+import com.sorychan.usercontextualizer.repository.CVRepository
+import com.sorychan.usercontextualizer.repository.JobRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -9,11 +13,30 @@ import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 
 @Service
-class CVService(chatClientBuilder: ChatClient.Builder) {
+class ContextService(
+    chatClientBuilder: ChatClient.Builder,
+    private val jobRepository: JobRepository,
+    private val cvRepository: CVRepository,
+) {
 
     private val chatClient = chatClientBuilder.build()
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
+    fun addCV(cv: CV): CV {
+        return cvRepository.save(cv)
+    }
+
+    fun getLatestCV(userId: Long): CV? {
+        return cvRepository.findLatestCVByUserId(userId)
+    }
+
+    fun addJobDescription(job: Job): Job {
+        return jobRepository.save(job)
+    }
+
+    fun getJobByUserId(userId: Long): Job? {
+        return jobRepository.findJobByUserId(userId)
+    }
     /**
      * Verifies if first characters of the file are actual PDF encodings.
      * Protects against malicious files with .pdf extension.
