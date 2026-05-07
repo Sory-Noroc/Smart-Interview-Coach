@@ -6,10 +6,9 @@ import com.sorychan.usercontextualizer.data.InterviewMessage
 import com.sorychan.usercontextualizer.data.Job
 import com.sorychan.usercontextualizer.dto.FirstQuestionDTO
 import com.sorychan.usercontextualizer.dto.InterviewFeedbackDTO
+import com.sorychan.usercontextualizer.enums.InterviewStatus
 import com.sorychan.usercontextualizer.enums.Role
 import com.sorychan.usercontextualizer.repository.CVRepository
-import com.sorychan.usercontextualizer.repository.InterviewMessageRepository
-import com.sorychan.usercontextualizer.repository.InterviewRepository
 import com.sorychan.usercontextualizer.repository.JobRepository
 import com.sorychan.usercontextualizer.service.CVService
 import com.sorychan.usercontextualizer.service.InterviewService
@@ -22,7 +21,6 @@ import org.springframework.ai.chat.messages.Message
 import org.springframework.ai.chat.messages.SystemMessage
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.converter.BeanOutputConverter
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -38,8 +36,6 @@ class LLMController(
     private val storageService: S3StorageService,
     private val interviewService: InterviewService,
     private val jobRepo: JobRepository,
-    private val interviewRepo: InterviewRepository,
-    private val interviewMessageRepo: InterviewMessageRepository,
     private val cvRepo: CVRepository,
 ) {
 
@@ -95,7 +91,7 @@ class LLMController(
             name = name,
             context = systemContext,
         )
-        val savedInterview = interviewRepo.save(newInterview)
+        val savedInterview = interviewService.addInterview(newInterview)
 
         val aiQuestion = this.chatClient.prompt()
             .messages(listOf(SystemMessage(systemContext), UserMessage("Hello, I am ready for the interview.")))
@@ -108,7 +104,7 @@ class LLMController(
             content = aiQuestion,
             role = Role.ASSISTANT
         )
-        interviewMessageRepo.save(aiMessage)
+        interviewService.addMessage(aiMessage)
         return ResponseEntity.ok(firstQuestion)
     }
 
@@ -117,8 +113,9 @@ class LLMController(
         @PathVariable id: Long,
         @PathVariable userId: Long
     ): ResponseEntity<InterviewFeedbackDTO> {
-        val interview = interviewRepo.findById(id).orElseThrow()
-        val history = interviewMessageRepo.findMessagesByInterviewId(id).take(MESSAGE_COUNT)
+
+        val interview = interviewService.getInterview(id) ?: return ResponseEntity.notFound().build()
+        val history = interviewService.getMessagesByInterviewId(id).take(MESSAGE_COUNT)
 
         val converter = BeanOutputConverter(InterviewFeedbackDTO::class.java)
 
@@ -130,9 +127,12 @@ class LLMController(
         transcript.append("--- INTERVIEW TRANSCRIPT END ---")
         val messages = listOf(
             SystemMessage(interviewService.getInterviewFeedbackPrompt(converter.format)),
-            UserMessage("Please analyze the following transcript and provide the JSON feedback:\n\n$transcript")
+            UserMessage("Analyze the following transcript and provide the JSON feedback:\n\n$transcript")
         )
         logger.info("Prompt for rating: {}", messages)
+
+        interview.status = InterviewStatus.COMPLETED
+        interviewService.updateOrAddInterview(interview)
 
         val feedback = chatClient.prompt()
             .messages(messages)
@@ -151,18 +151,18 @@ class LLMController(
     ): Flux<String> {
         logger.info("/interviews/$interviewId/user/$userId called")
 
-        val interview: Interview = interviewRepo.findById(interviewId).orElseThrow { RuntimeException("Interview not found") }
+        val interview = interviewService.getInterview(interviewId) ?: return Flux.empty()
         val recentMessage = InterviewMessage(
             content = userMessage.prompt,
             interview = interview,
             role = Role.USER
         )
-        interviewMessageRepo.save(recentMessage)
+        interviewService.addMessage(recentMessage)
 
         val messages = mutableListOf<Message>()
         messages.add(SystemMessage(interview.context))
 
-        val history = interviewMessageRepo.findMessagesByInterviewId(interviewId)
+        val history = interviewService.getMessagesByInterviewId(interviewId)
         history.forEach {
             if (it.role == Role.USER) messages.add(UserMessage(it.content))
             else messages.add(AssistantMessage(it.content))
@@ -185,7 +185,7 @@ class LLMController(
                         role = Role.ASSISTANT
                     )
                     CompletableFuture.runAsync {
-                        interviewMessageRepo.save(aiMessage)
+                        interviewService.addMessage(aiMessage)
                     }
                 }
             }

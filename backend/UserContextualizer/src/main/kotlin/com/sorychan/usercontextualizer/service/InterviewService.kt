@@ -1,12 +1,19 @@
 package com.sorychan.usercontextualizer.service
 
+import com.sorychan.usercontextualizer.data.Interview
+import com.sorychan.usercontextualizer.data.InterviewMessage
 import com.sorychan.usercontextualizer.data.Job
+import com.sorychan.usercontextualizer.repository.InterviewMessageRepository
+import com.sorychan.usercontextualizer.repository.InterviewRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class InterviewService {
+class InterviewService(
+    private val interviewRepository: InterviewRepository,
+    private val interviewMessageRepository: InterviewMessageRepository
+) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     val injectionProtectionPrompt = """
@@ -43,5 +50,37 @@ class InterviewService {
             Analyze the transcript and provide feedback in JSON format.
             $jsonFormat
             """.trimIndent()
+    }
+
+    /**
+     * Interview Part
+     */
+
+    fun getInterview(id: Long): Interview? {
+        return interviewRepository.findById(id).orElse(null)
+    }
+
+    fun addInterview(interview: Interview): Interview {
+        return interviewRepository.save(interview)
+    }
+
+    fun updateOrAddInterview(interview: Interview): Interview {
+        return interviewRepository.save(interview)
+    }
+
+    /**
+     * Message Part
+     */
+
+    fun getMessage(messageId: Long): InterviewMessage? {
+        return interviewMessageRepository.findById(messageId).orElse(null)
+    }
+
+    fun getMessagesByInterviewId(interviewId: Long): List<InterviewMessage> {
+        return interviewMessageRepository.findMessagesByInterviewId(interviewId)
+    }
+
+    fun addMessage(message: InterviewMessage): InterviewMessage {
+        return interviewMessageRepository.save(message)
     }
 }
