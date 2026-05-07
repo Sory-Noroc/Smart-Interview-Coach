@@ -43,6 +43,7 @@ class LLMController(
     private val cvRepo: CVRepository,
 ) {
 
+    val MESSAGE_COUNT = 16 // Taking only last xx messages of an interview
     private val chatClient: ChatClient = chatClientBuilder.build()
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -115,30 +116,31 @@ class LLMController(
     fun finishInterview(
         @PathVariable id: Long,
         @PathVariable userId: Long
-    ): ResponseEntity<String> {
+    ): ResponseEntity<InterviewFeedbackDTO> {
         val interview = interviewRepo.findById(id).orElseThrow()
-        val history = interviewMessageRepo.findMessagesByInterviewId(id)
+        val history = interviewMessageRepo.findMessagesByInterviewId(id).take(MESSAGE_COUNT)
 
         val converter = BeanOutputConverter(InterviewFeedbackDTO::class.java)
 
-        val messages = mutableListOf<Message>()
-        messages.add(SystemMessage(
-            interviewService.injectionProtectionPrompt +
-                interviewService.getInterviewFeedbackPrompt(converter.format))
-        )
+        val transcript = StringBuilder("--- INTERVIEW TRANSCRIPT START ---\n")
         history.forEach {
-            if (it.role == Role.USER) messages.add(UserMessage("${it.content}"))
-                else messages.add(AssistantMessage("${it.content}"))
+            val role = if (it.role == Role.USER) "CANDIDATE" else "INTERVIEWER"
+            transcript.append("$role: ${it.content}\n")
         }
-        logger.debug("Prompt for rating: {}", messages)
+        transcript.append("--- INTERVIEW TRANSCRIPT END ---")
+        val messages = listOf(
+            SystemMessage(interviewService.getInterviewFeedbackPrompt(converter.format)),
+            UserMessage("Please analyze the following transcript and provide the JSON feedback:\n\n$transcript")
+        )
+        logger.info("Prompt for rating: {}", messages)
 
         val feedback = chatClient.prompt()
             .messages(messages)
             .call()
             .content() ?: "Could not generate feedback."
 
-//        val feedbackJson = converter.convert(feedback)
-        return ResponseEntity.ok(feedback)
+        val feedbackJson = converter.convert(feedback)
+        return ResponseEntity.ok(feedbackJson)
     }
 
     @PostMapping("/interviews/{interviewId}/user/{userId}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
