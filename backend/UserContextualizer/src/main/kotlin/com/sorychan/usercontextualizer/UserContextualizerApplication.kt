@@ -8,7 +8,10 @@ import org.springframework.boot.runApplication
 class UserContextualizerApplication
 
 fun main(args: Array<String>) {
-    val dotenv = dotenv()
+    val dotenv = dotenv {
+        ignoreIfMissing = true
+    }
+
     dotenv.entries().forEach { entry ->
         System.setProperty(entry.key, entry.value)
     }

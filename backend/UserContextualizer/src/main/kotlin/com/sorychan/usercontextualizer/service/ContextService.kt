@@ -34,8 +34,13 @@ class ContextService(
         return jobRepository.save(job)
     }
 
-    fun getJobByUserId(userId: Long): Job? {
-        return jobRepository.findJobByUserId(userId)
+    fun getJobById(jobId: Long): Job? {
+        val jobs = jobRepository.findJobById(jobId)
+        return if (!jobs.isEmpty()) {
+            jobs[0]
+        } else {
+            null
+        }
     }
     /**
      * Verifies if first characters of the file are actual PDF encodings.

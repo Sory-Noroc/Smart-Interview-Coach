@@ -69,13 +69,14 @@ class LLMController(
     @PostMapping("/interviews")
     fun createInterview(
         @RequestParam userId: Long,
+        @RequestParam jobId: Long,
         @RequestParam name: String,
         @RequestParam interviewerJob: String
     ): ResponseEntity<FirstQuestionDTO> {
         logger.info("/interviews called with user id: $userId, name: $name")
 
         val userCV = contextService.getLatestCV(userId)
-        val job = contextService.getJobByUserId(userId)
+        val job = contextService.getJobById(jobId)
 
         val systemContext =  interviewService.injectionProtectionPrompt +
                  interviewService.getInterviewPrompt(interviewerJob) +
@@ -111,7 +112,7 @@ class LLMController(
     ): ResponseEntity<InterviewFeedbackDTO> {
 
         val interview = interviewService.getInterview(id) ?: return ResponseEntity.notFound().build()
-        val history = interviewService.getMessagesByInterviewId(id).take(MESSAGE_COUNT)
+        val history = interviewService.getMessagesByInterviewId(id).takeLast(MESSAGE_COUNT)
 
         val converter = BeanOutputConverter(InterviewFeedbackDTO::class.java)
 
@@ -135,8 +136,13 @@ class LLMController(
             .call()
             .content() ?: "Could not generate feedback."
 
-        val feedbackJson = converter.convert(feedback)
-        return ResponseEntity.ok(feedbackJson)
+        try {
+            val feedbackJson = converter.convert(feedback)
+            return ResponseEntity.ok(feedbackJson)
+        } catch (e: Exception) {
+            logger.error(e.message)
+            return ResponseEntity.notFound().build()
+        }
     }
 
     @PostMapping("/interviews/{interviewId}/user/{userId}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
@@ -158,7 +164,7 @@ class LLMController(
         val messages = mutableListOf<Message>()
         messages.add(SystemMessage(interview.context))
 
-        val history = interviewService.getMessagesByInterviewId(interviewId)
+        val history = interviewService.getMessagesByInterviewId(interviewId).takeLast(MESSAGE_COUNT)
         history.forEach {
             if (it.role == Role.USER) messages.add(UserMessage(it.content))
             else messages.add(AssistantMessage(it.content))

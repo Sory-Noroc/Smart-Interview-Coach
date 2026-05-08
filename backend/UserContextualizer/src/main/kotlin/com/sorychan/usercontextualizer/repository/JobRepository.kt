@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface JobRepository : JpaRepository<Job, Long> {
     fun findJobByUserId(userId: Long): Job?
+    fun findJobById(id: Long): MutableList<Job>
 }
