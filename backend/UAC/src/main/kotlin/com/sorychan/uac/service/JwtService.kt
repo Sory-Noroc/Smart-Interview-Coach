@@ -29,4 +29,25 @@ class JwtService(
             .signWith(key)
             .compact()
     }
+
+    fun extractUsername(token: String): String {
+        return extractAllClaims(token).subject
+    }
+
+    fun isTokenValid(token: String, username: String): Boolean {
+        val extractedUsername = extractUsername(token)
+        return (extractedUsername == username) && !isTokenExpired(token)
+    }
+
+    private fun isTokenExpired(token: String): Boolean {
+        return extractAllClaims(token).expiration.before(Date())
+    }
+
+    private fun extractAllClaims(token: String): io.jsonwebtoken.Claims {
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+    }
 }

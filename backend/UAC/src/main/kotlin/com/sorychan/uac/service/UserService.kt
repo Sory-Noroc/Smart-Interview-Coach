@@ -2,6 +2,9 @@ package com.sorychan.uac.service
 
 import com.sorychan.uac.model.User
 import com.sorychan.uac.repository.UserRepository
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
@@ -9,7 +12,23 @@ import org.springframework.stereotype.Service
 class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder
-) {
+) : UserDetailsService {
+
+    override fun loadUserByUsername(username: String): UserDetails {
+        val user = userRepository.findByUsername(username)
+            .orElseThrow { UsernameNotFoundException("User not found: $username") }
+        
+        return org.springframework.security.core.userdetails.User
+            .withUsername(user.username)
+            .password(user.passwordHash)
+            .authorities(user.role.name)
+            .accountExpired(false)
+            .accountLocked(false)
+            .credentialsExpired(false)
+            .disabled(!user.isEnabled)
+            .build()
+    }
+
     fun registerUser(user: User): User {
         if (userRepository.existsByUsername(user.username)) {
             throw RuntimeException("Username already exists")
