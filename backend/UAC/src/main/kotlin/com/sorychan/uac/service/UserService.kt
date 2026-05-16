@@ -46,9 +46,10 @@ class UserService(
     }
 
     fun authenticate(username: String, passwordRaw: String): User? {
-        val user = userRepository.findByUsername(username).orElse(null)
-        if (passwordEncoder.matches(passwordRaw, user.passwordHash)) {
-            return user
+        userRepository.findByUsername(username).orElse(null)?.also { user ->
+            if (passwordEncoder.matches(passwordRaw, user.passwordHash)) {
+                return user
+            }
         }
         return null
     }

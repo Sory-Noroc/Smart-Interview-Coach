@@ -6,6 +6,7 @@ import com.sorychan.uac.dto.RegisterRequest
 import com.sorychan.uac.model.User
 import com.sorychan.uac.service.JwtService
 import com.sorychan.uac.service.UserService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,24 +22,20 @@ class TokenController(
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest): ResponseEntity<Any> {
-        return try {
-            val user = User(
-                username = request.username,
-                email = request.email,
-                firstName = request.firstName,
-                lastName = request.lastName,
-                passwordHash = request.password
-            )
-            val savedUser = userService.registerUser(user)
-            ResponseEntity.status(HttpStatus.CREATED).body(savedUser)
-        } catch (e: Exception) {
-            ResponseEntity.badRequest().body(mapOf("error" to e.message))
-        }
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<Any> {
+        val user = User(
+            username = request.username,
+            email = request.email,
+            firstName = request.firstName,
+            lastName = request.lastName,
+            passwordHash = request.password
+        )
+        val savedUser = userService.registerUser(user)
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser)
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<Any> {
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Any> {
         val user = userService.authenticate(request.username, request.password)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
 
