@@ -46,11 +46,24 @@ class UserService(
     }
 
     fun authenticate(username: String, passwordRaw: String): User? {
-        userRepository.findByUsername(username).orElse(null)?.also { user ->
-            if (passwordEncoder.matches(passwordRaw, user.passwordHash)) {
-                return user
-            }
+        val user = userRepository.findByUsername(username).orElse(null)
+        if (user != null && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
+            return user
         }
         return null
+    }
+
+    fun findByUsername(username: String): User? {
+        return userRepository.findByUsername(username).orElse(null)
+    }
+
+    fun updateProfile(username: String, firstName: String, lastName: String): User {
+        val user = userRepository.findByUsername(username)
+            .orElseThrow { RuntimeException("User not found") }
+
+        user.firstName = firstName
+        user.lastName = lastName
+
+        return userRepository.save(user)
     }
 }
