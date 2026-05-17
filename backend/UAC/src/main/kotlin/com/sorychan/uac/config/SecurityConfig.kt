@@ -41,7 +41,12 @@ class SecurityConfig(
             .authenticationProvider(authenticationProvider(passwordEncoder = passwordEncoder))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/uac/v1/auth/**").permitAll()
+                auth.requestMatchers(
+                    "/uac/v1/auth/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll()
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }
