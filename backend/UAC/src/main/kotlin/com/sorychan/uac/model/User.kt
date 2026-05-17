@@ -34,4 +34,7 @@ class User (
 
     var isEnabled: Boolean = true,
     var createdAt: LocalDateTime = LocalDateTime.now(),
+
+    var resetToken: String? = null,
+    var resetTokenExpiry: LocalDateTime? = null
 )

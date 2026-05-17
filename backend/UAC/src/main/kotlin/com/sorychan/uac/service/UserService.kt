@@ -2,17 +2,22 @@ package com.sorychan.uac.service
 
 import com.sorychan.uac.model.User
 import com.sorychan.uac.repository.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val emailService: EmailService
 ) : UserDetailsService {
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun loadUserByUsername(username: String): UserDetails {
         val user = userRepository.findByUsername(username)
@@ -81,5 +86,36 @@ class UserService(
         } catch (ex: NullPointerException) {
             throw RuntimeException("Password hash exception")
         }
+    }
+
+    fun createResetToken(email: String): String {
+        val userObject = userRepository.findByEmail(email)
+        if (userObject.isEmpty) {
+            return ""
+        }
+
+        val user = userObject.get()
+        val token = UUID.randomUUID().toString().take(6)
+        user.resetToken = token
+        user.resetTokenExpiry = LocalDateTime.now().plusHours(1)
+        userRepository.save(user)
+
+        emailService.sendPasswordResetEmail(user.email, token)
+
+        return token
+    }
+
+    fun resetPassword(token: String, newPasswordRaw: String) {
+        val user = userRepository.findByResetToken(token)
+            .orElseThrow { RuntimeException("Invalid or expired token") }
+
+        if (user.resetTokenExpiry?.isBefore(LocalDateTime.now()) == true) {
+            throw RuntimeException("Token has expired")
+        }
+
+        user.passwordHash = passwordEncoder.encode(newPasswordRaw)!!
+        user.resetToken = null
+        user.resetTokenExpiry = null
+        userRepository.save(user)
     }
 }
