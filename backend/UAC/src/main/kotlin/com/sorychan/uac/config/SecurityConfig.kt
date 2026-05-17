@@ -47,6 +47,7 @@ class SecurityConfig(
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
+                auth.requestMatchers("/uac/v1/admin/**").hasAuthority("ADMIN")
                 auth.anyRequest().authenticated()
             }
             .formLogin { it.disable() }

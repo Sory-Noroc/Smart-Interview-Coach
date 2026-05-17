@@ -118,4 +118,22 @@ class UserService(
         user.resetTokenExpiry = null
         userRepository.save(user)
     }
+
+    fun findAllUsers(): List<User> {
+        return userRepository.findAll()
+    }
+
+    fun toggleUserStatus(id: Long, enabled: Boolean): User {
+        val user = userRepository.findById(id)
+            .orElseThrow { RuntimeException("User not found") }
+        user.isEnabled = enabled
+        return userRepository.save(user)
+    }
+
+    fun updateUserRole(id: Long, newRole: com.sorychan.uac.enum.Role): User {
+        val user = userRepository.findById(id)
+            .orElseThrow { RuntimeException("User not found") }
+        user.role = newRole
+        return userRepository.save(user)
+    }
 }
