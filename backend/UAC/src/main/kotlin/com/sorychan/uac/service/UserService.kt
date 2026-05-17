@@ -66,4 +66,20 @@ class UserService(
 
         return userRepository.save(user)
     }
+
+    fun changePassword(username: String, oldPasswordRaw: String, newPasswordRaw: String) {
+        val user = userRepository.findByUsername(username)
+            .orElseThrow { RuntimeException("User not found") }
+
+        if (!passwordEncoder.matches(oldPasswordRaw, user.passwordHash)) {
+            throw RuntimeException("Invalid current password")
+        }
+
+        try {
+            user.passwordHash = passwordEncoder.encode(newPasswordRaw)!!
+            userRepository.save(user)
+        } catch (ex: NullPointerException) {
+            throw RuntimeException("Password hash exception")
+        }
+    }
 }
