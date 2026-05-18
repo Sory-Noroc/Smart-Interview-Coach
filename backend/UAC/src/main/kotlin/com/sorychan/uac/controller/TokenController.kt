@@ -1,10 +1,9 @@
 package com.sorychan.uac.controller
 
-import com.sorychan.uac.dto.AuthResponse
-import com.sorychan.uac.dto.LoginRequest
-import com.sorychan.uac.dto.RegisterRequest
+import com.sorychan.uac.dto.*
 import com.sorychan.uac.model.User
 import com.sorychan.uac.service.JwtService
+import com.sorychan.uac.service.RefreshTokenService
 import com.sorychan.uac.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -18,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/uac/v1/auth")
 class TokenController(
     private val userService: UserService,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val refreshTokenService: RefreshTokenService
 ) {
 
     @PostMapping("/register")
@@ -39,7 +39,21 @@ class TokenController(
         val user = userService.authenticate(request.username, request.password)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
 
-        val token = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
-        return ResponseEntity.ok(AuthResponse(token, user.username, user.role.name))
+        val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
+        val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
+        
+        return ResponseEntity.ok(AuthResponse(accessToken, refreshToken.token, user.username, user.role.name))
+    }
+
+    @PostMapping("/refresh")
+    fun refreshToken(@Valid @RequestBody request: TokenRefreshRequest): ResponseEntity<TokenRefreshResponse> {
+        return refreshTokenService.findByToken(request.refreshToken)
+            .map { refreshTokenService.verifyExpiration(it) }
+            .map { it.user }
+            .map { user ->
+                val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
+                ResponseEntity.ok(TokenRefreshResponse(accessToken, request.refreshToken))
+            }
+            .orElseThrow { RuntimeException("Refresh token is not in database!") }
     }
 }

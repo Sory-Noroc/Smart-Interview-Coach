@@ -61,10 +61,10 @@ class AuthIntegrationTests {
             content = objectMapper.writeValueAsString(loginRequest)
         }.andExpect {
             status { isOk() }
-            jsonPath("$.token") { exists() }
+            jsonPath("$.accessToken") { exists() }
         }.andReturn()
 
-        val token = objectMapper.readTree(loginResponse.response.contentAsString).get("token").asText()
+        val token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()
 
         // Access /me with token
         mockMvc.get("/uac/v1/users/me") {
@@ -108,7 +108,7 @@ class AuthIntegrationTests {
             content = objectMapper.writeValueAsString(LoginRequest("regular", "password123"))
         }.andReturn()
         
-        val token = objectMapper.readTree(loginResponse.response.contentAsString).get("token").asText()
+        val token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()
 
         // Try to access admin endpoint
         mockMvc.get("/uac/v1/admin/users") {

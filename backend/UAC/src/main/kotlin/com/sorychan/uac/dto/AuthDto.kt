@@ -33,7 +33,19 @@ data class RegisterRequest(
 )
 
 data class AuthResponse(
-    val token: String,
+    val accessToken: String,
+    val refreshToken: String,
     val username: String,
     val role: String
 )
+
+data class TokenRefreshRequest(
+    @field:NotBlank(message = "Refresh token is required")
+    val refreshToken: String
+)
+
+data class TokenRefreshResponse(
+    val accessToken: String,
+    val refreshToken: String
+)
+

@@ -21,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.get
+import java.lang.Thread.sleep
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -117,7 +118,7 @@ class AdvancedSecurityTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(LoginRequest("elevate", "password123"))
         }.andReturn()
-        val userToken = objectMapper.readTree(userLogin.response.contentAsString).get("token").asText()
+        val userToken = objectMapper.readTree(userLogin.response.contentAsString).get("accessToken").asText()
 
         mockMvc.get("/uac/v1/admin/users") {
             header("Authorization", "Bearer $userToken")
@@ -132,7 +133,7 @@ class AdvancedSecurityTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(LoginRequest("elevate", "password123"))
         }.andReturn()
-        val newAdminToken = objectMapper.readTree(newUserLogin.response.contentAsString).get("token").asText()
+        val newAdminToken = objectMapper.readTree(newUserLogin.response.contentAsString).get("accessToken").asText()
 
         mockMvc.get("/uac/v1/admin/users") {
             header("Authorization", "Bearer $newAdminToken")
@@ -171,5 +172,44 @@ class AdvancedSecurityTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(LoginRequest("resetme", "newsecurepass"))
         }.andExpect { status { isOk() } }
+    }
+
+    @Test
+    fun `should refresh access token using refresh token`() {
+        val regRequest = RegisterRequest("refreshuser", "refresh@test.com", "R", "U", "pass123456")
+        mockMvc.post("/uac/v1/auth/register") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(regRequest)
+        }
+
+        val loginResponse = mockMvc.post("/uac/v1/auth/login") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(LoginRequest("refreshuser", "pass123456"))
+        }.andReturn()
+
+        val loginJson = objectMapper.readTree(loginResponse.response.contentAsString)
+        val oldAccessToken = loginJson.get("accessToken").asText()
+        val refreshToken = loginJson.get("refreshToken").asText()
+
+        sleep(1000)
+
+        val refreshResponse = mockMvc.post("/uac/v1/auth/refresh") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(mapOf("refreshToken" to refreshToken))
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.accessToken") { exists() }
+        }.andReturn()
+
+        val newAccessToken = objectMapper.readTree(refreshResponse.response.contentAsString).get("accessToken").asText()
+
+        assert(oldAccessToken != newAccessToken)
+
+        mockMvc.get("/uac/v1/users/me") {
+            header("Authorization", "Bearer $newAccessToken")
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.username") { value("refreshuser") }
+        }
     }
 }
