@@ -52,7 +52,7 @@ class UserService(
 
     fun authenticate(username: String, passwordRaw: String): User? {
         val user = userRepository.findByUsername(username).orElse(null)
-        if (user != null && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
+        if (user != null && user.isEnabled && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
             return user
         }
         return null
