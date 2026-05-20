@@ -22,7 +22,7 @@ class TokenController(
 ) {
 
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<Any> {
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<User> {
         val user = User(
             username = request.username,
             email = request.email,

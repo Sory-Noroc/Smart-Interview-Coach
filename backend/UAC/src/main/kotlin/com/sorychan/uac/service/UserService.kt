@@ -17,7 +17,7 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
     private val emailService: EmailService
 ) : UserDetailsService {
-    private val logger = LoggerFactory.getLogger(javaClass)
+    private val logger = LoggerFactory.getLogger(UserService::class.java)
 
     override fun loadUserByUsername(username: String): UserDetails {
         val user = userRepository.findByUsername(username)

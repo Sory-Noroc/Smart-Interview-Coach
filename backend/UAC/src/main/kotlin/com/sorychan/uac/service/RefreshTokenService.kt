@@ -22,17 +22,22 @@ class RefreshTokenService(
 
     @Transactional
     fun createRefreshToken(userId: Long): RefreshToken {
-        val user = userRepository.findById(userId).get()
+        val user = userRepository.findById(userId)
+            .orElseThrow { RuntimeException("User not found with id: $userId") }
 
-        refreshTokenRepository.deleteByUser(user)
-
-        val refreshToken = RefreshToken(
+        // User and Refresh Token are 1:1, we do token update instead of delete+insert
+        val token = user.refreshToken?.apply {
+            this.token = UUID.randomUUID().toString()
+            this.expiryDate = Instant.now().plusMillis(refreshTokenDurationMs)
+        } ?: RefreshToken(
             user = user,
             token = UUID.randomUUID().toString(),
             expiryDate = Instant.now().plusMillis(refreshTokenDurationMs)
-        )
+        ).also {
+            user.refreshToken = it
+        }
 
-        return refreshTokenRepository.save(refreshToken)
+        return refreshTokenRepository.save(token)
     }
 
     fun verifyExpiration(token: RefreshToken): RefreshToken {
