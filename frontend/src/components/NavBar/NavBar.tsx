@@ -21,23 +21,23 @@ function NavBar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
-        <nav className="relative bg-black dark:bg-white text-white dark:text-black shadow-md transition-colors duration-300 z-50">
+        <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
                 <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
                     Prep<span className="text-blue-500">Forge</span>
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex flex-row items-center gap-4 lg:gap-8 font-light text-gray-400">
-                    <Link to="/" className="hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer font-medium">Home</Link>
-                    <Link to="/about" className="hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer font-medium">About</Link>
-                    <Link to="/demo" className="hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer font-medium">Demo</Link>
+                <div className="hidden md:flex flex-row items-center gap-4 lg:gap-8 text-gray-600 dark:text-gray-400">
+                    <Link to="/" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Home</Link>
+                    <Link to="/about" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">About</Link>
+                    <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
 
                 <div className="flex flex-row items-center gap-2 md:gap-4">
                     <button
                         onClick={toggleTheme}
-                        className="p-2 rounded-lg bg-gray-100 dark:bg-black text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                        className="p-2 rounded-lg bg-gray-50 dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <MoonIcon /> : <SunIcon />}
@@ -55,7 +55,7 @@ function NavBar() {
                     {/* Mobile Menu Button */}
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="md:hidden p-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all cursor-pointer"
+                        className="md:hidden p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-all cursor-pointer"
                     >
                         {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
                     </button>
@@ -64,10 +64,10 @@ function NavBar() {
 
             {/* Mobile Navigation Menu */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-black dark:bg-white border-t border-gray-800 dark:border-gray-200 flex flex-col p-4 gap-4 shadow-xl animate-in slide-in-from-top duration-200">
-                    <Link to="/" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-800 dark:border-gray-100">Home</Link>
-                    <Link to="/about" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-800 dark:border-gray-100">About</Link>
-                    <Link to="/demo" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-800 dark:border-gray-100">Demo</Link>
+                <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-black border-t border-gray-100 dark:border-gray-900 flex flex-col p-4 gap-4 shadow-xl animate-in slide-in-from-top duration-200">
+                    <Link to="/" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">Home</Link>
+                    <Link to="/about" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">About</Link>
+                    <Link to="/demo" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">Demo</Link>
                     <div className="flex flex-col gap-3 pt-2">
                         <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                             <Button variant="primary" className="w-full">Log In</Button>
@@ -83,5 +83,3 @@ function NavBar() {
 }
 
 export default NavBar
-
-
