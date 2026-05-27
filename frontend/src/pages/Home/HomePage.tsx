@@ -7,20 +7,21 @@ const HomePage: React.FC = () => {
         <div className="relative overflow-hidden bg-white dark:bg-black transition-colors duration-300">
             {/* Background Decorative Elements */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden opacity-20 dark:opacity-30">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]"></div>
-                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-purple-600 rounded-full blur-[100px]"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-brand-secondary rounded-full blur-[100px]"></div>
             </div>
 
             {/* Hero Section */}
             <section className="relative pt-20 pb-16 md:pt-32 md:pb-24 px-4">
                 <div className="max-w-5xl mx-auto text-center">
-                    <div className="inline-block px-4 py-1.5 mb-6 text-sm font-semibold tracking-wide text-blue-600 uppercase bg-blue-50 dark:bg-blue-900/30 rounded-full">
+                    <div className="inline-block px-4 py-1.5 mb-6 text-sm font-semibold tracking-wide text-brand-primary uppercase bg-brand-primary/10 rounded-full">
                         Powered by AI
                     </div>
-                    
+
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-black dark:text-white mb-8 leading-[1.1]">
-                        Are you tired of stress blocking your <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-500">full potential</span> on job interviews?
+                        Are you tired of stress blocking your <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">full potential</span> on job interviews?
                     </h1>
+
                     
                     <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed">
                         Try <span className="font-bold text-black dark:text-white">PrepForge</span>! Our app uses state-of-the-art artificial intelligence to simulate real job interview vibes and tailored questions, helping you practice and ace your next big opportunity.

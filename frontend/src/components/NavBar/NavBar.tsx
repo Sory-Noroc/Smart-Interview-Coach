@@ -24,7 +24,7 @@ function NavBar() {
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
                 <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
-                    Prep<span className="text-blue-500">Forge</span>
+                    Prep<span className="text-brand-accent">Forge</span>
                 </Link>
 
                 {/* Desktop Navigation */}
