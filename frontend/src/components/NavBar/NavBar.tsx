@@ -24,7 +24,7 @@ function NavBar() {
         <nav className="relative bg-black dark:bg-white text-white dark:text-black shadow-md transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
                 <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
-                    Job<span className="text-blue-500">Acer</span>
+                    Prep<span className="text-blue-500">Forge</span>
                 </Link>
 
                 {/* Desktop Navigation */}
@@ -37,7 +37,7 @@ function NavBar() {
                 <div className="flex flex-row items-center gap-2 md:gap-4">
                     <button
                         onClick={toggleTheme}
-                        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                        className="p-2 rounded-lg bg-gray-100 dark:bg-black text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all cursor-pointer"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <MoonIcon /> : <SunIcon />}
