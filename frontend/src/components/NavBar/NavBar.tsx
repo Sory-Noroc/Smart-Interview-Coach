@@ -23,7 +23,7 @@ function NavBar() {
     return (
         <nav className="relative bg-black dark:bg-white text-white dark:text-black shadow-md transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
-                <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer">
+                <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
                     Job<span className="text-blue-500">Acer</span>
                 </Link>
 
