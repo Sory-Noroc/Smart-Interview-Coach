@@ -3,6 +3,7 @@ import NavBar from "./components/NavBar/NavBar.tsx";
 import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage';
 import HomePage from './pages/Home/HomePage';
+import DemoPage from './pages/Demo/DemoPage';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/demo" element={<DemoPage />} />
         </Routes>
       </main>
     </div>
