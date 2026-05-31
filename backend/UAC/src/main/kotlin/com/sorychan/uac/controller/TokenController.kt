@@ -8,6 +8,7 @@ import com.sorychan.uac.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/uac/v1/auth")
+@CrossOrigin
 class TokenController(
     private val userService: UserService,
     private val jwtService: JwtService,
@@ -36,7 +38,7 @@ class TokenController(
 
     @PostMapping("/login")
     fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Any> {
-        val user = userService.authenticate(request.username, request.password)
+        val user = userService.authenticate(request.usernameOrEmail, request.password)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
 
         val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))

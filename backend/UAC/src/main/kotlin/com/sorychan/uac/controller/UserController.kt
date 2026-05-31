@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/uac/v1/users")
+@CrossOrigin
 class UserController(
     private val userService: UserService
 ) {

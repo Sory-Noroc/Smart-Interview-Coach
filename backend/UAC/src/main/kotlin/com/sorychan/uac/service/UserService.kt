@@ -20,7 +20,7 @@ class UserService(
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
     override fun loadUserByUsername(username: String): UserDetails {
-        val user = userRepository.findByUsername(username)
+        val user = userRepository.findByUsernameOrEmail(username)
             .orElseThrow { UsernameNotFoundException("User not found: $username") }
         
         return org.springframework.security.core.userdetails.User
@@ -50,8 +50,8 @@ class UserService(
         return userRepository.save(user)
     }
 
-    fun authenticate(username: String, passwordRaw: String): User? {
-        val user = userRepository.findByUsername(username).orElse(null)
+    fun authenticate(loginInput: String, passwordRaw: String): User? {
+        val user = userRepository.findByUsernameOrEmail(loginInput).orElse(null)
         if (user != null && user.isEnabled && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
             return user
         }
@@ -59,11 +59,11 @@ class UserService(
     }
 
     fun findByUsername(username: String): User? {
-        return userRepository.findByUsername(username).orElse(null)
+        return userRepository.findByUsernameOrEmail(username).orElse(null)
     }
 
     fun updateProfile(username: String, firstName: String, lastName: String): User {
-        val user = userRepository.findByUsername(username)
+        val user = userRepository.findByUsernameOrEmail(username)
             .orElseThrow { RuntimeException("User not found") }
 
         user.firstName = firstName
@@ -73,7 +73,7 @@ class UserService(
     }
 
     fun changePassword(username: String, oldPasswordRaw: String, newPasswordRaw: String) {
-        val user = userRepository.findByUsername(username)
+        val user = userRepository.findByUsernameOrEmail(username)
             .orElseThrow { RuntimeException("User not found") }
 
         if (!passwordEncoder.matches(oldPasswordRaw, user.passwordHash)) {

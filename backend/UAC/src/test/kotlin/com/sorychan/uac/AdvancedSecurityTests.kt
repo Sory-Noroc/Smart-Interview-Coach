@@ -77,7 +77,7 @@ class AdvancedSecurityTests {
             status { isCreated() }
         }
 
-        val user = userRepository.findByUsername("blocked").get()
+        val user = userRepository.findByUsernameOrEmail("blocked").get()
         user.isEnabled = false
         userRepository.save(user)
 
@@ -112,7 +112,7 @@ class AdvancedSecurityTests {
             content = objectMapper.writeValueAsString(LoginRequest("admin", "hashed"))
         }
         
-        val userToElevate = userRepository.findByUsername("elevate").get()
+        val userToElevate = userRepository.findByUsernameOrEmail("elevate").get()
 
         val userLogin = mockMvc.post("/uac/v1/auth/login") {
             contentType = MediaType.APPLICATION_JSON
@@ -155,7 +155,7 @@ class AdvancedSecurityTests {
             content = objectMapper.writeValueAsString(ForgotPasswordRequest("reset@test.com"))
         }.andExpect { status { isOk() } }
 
-        val user = userRepository.findByUsername("resetme").get()
+        val user = userRepository.findByUsernameOrEmail("resetme").get()
         val token = user.resetToken!!
 
         mockMvc.post("/uac/v1/auth/reset-password") {

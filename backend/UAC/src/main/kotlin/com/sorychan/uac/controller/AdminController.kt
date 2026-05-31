@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@CrossOrigin
 @RequestMapping("/uac/v1/admin")
 class AdminController(
     private val userService: UserService

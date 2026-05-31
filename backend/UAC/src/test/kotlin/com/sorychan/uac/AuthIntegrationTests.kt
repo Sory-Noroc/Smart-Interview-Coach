@@ -55,8 +55,8 @@ class AuthIntegrationTests {
         }
 
         // Login
-        val loginRequest = LoginRequest("testuser", "password123")
-        val loginResponse = mockMvc.post("/uac/v1/auth/login") {
+        var loginRequest = LoginRequest("testuser", "password123")
+        var loginResponse = mockMvc.post("/uac/v1/auth/login") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(loginRequest)
         }.andExpect {
@@ -64,7 +64,18 @@ class AuthIntegrationTests {
             jsonPath("$.accessToken") { exists() }
         }.andReturn()
 
-        val token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()
+        var token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()
+
+        loginRequest = LoginRequest("test@example.com", "password123")
+        loginResponse = mockMvc.post("/uac/v1/auth/login") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(loginRequest)
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.accessToken") { exists() }
+        }.andReturn()
+
+        token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()
 
         // Access /me with token
         mockMvc.get("/uac/v1/users/me") {
