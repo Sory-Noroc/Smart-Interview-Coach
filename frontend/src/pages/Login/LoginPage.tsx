@@ -1,15 +1,45 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginPage: React.FC = () => {
-    const [username, setUsername] = useState('');
+    const [usernameOrEmail, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Logging in with:', { username, password });
-        // API call logic
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const response = await api.post('/uac/v1/auth/login', {
+                usernameOrEmail,
+                password
+            });
+
+            const { accessToken, refreshToken, username: userRes, role } = response.data;
+            
+            login(accessToken, refreshToken, userRes, role);
+            navigate('/');
+        } catch (err: any) {
+            // for debugging only
+            console.log(err)
+            if (err.response && err.response.data && err.response.data.error) {
+                setError(err.response.data.error);
+            } else {
+                setError('Invalid username or password. Please try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -20,13 +50,20 @@ const LoginPage: React.FC = () => {
                     <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Please enter your details to sign in</p>
                 </div>
 
+                {error && (
+                    <div className="mb-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-200 dark:border-red-800">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleLogin} className="flex flex-col gap-6">
                     <Input 
                         label="Username"
                         placeholder="Enter your username"
-                        value={username}
+                        value={usernameOrEmail}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        disabled={isLoading}
                     />
                     
                     <Input 
@@ -36,6 +73,7 @@ const LoginPage: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        disabled={isLoading}
                     />
 
                     <div className="flex items-center justify-between text-sm">
@@ -46,14 +84,19 @@ const LoginPage: React.FC = () => {
                         <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
                     </div>
 
-                    <Button type="submit" variant="primary" className="w-full py-3 mt-2">
-                        Sign In
+                    <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="w-full py-3 mt-2"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Signing In...' : 'Sign In'}
                     </Button>
                 </form>
 
                 <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account?{' '}
-                    <a href="#" className="text-blue-500 font-bold hover:underline">Sign up for free</a>
+                    <a href="/register" className="text-blue-500 font-bold hover:underline">Sign up for free</a>
                 </div>
             </div>
         </div>
