@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import api from "../../api/axios.ts";
+import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import RegisterRequest from "../../dto/RegisterRequest.tsx";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -12,15 +15,54 @@ const RegisterPage: React.FC = () => {
         password: '',
         confirmPassword: ''
     });
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Registering with:', formData);
+        setError('');
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match!");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const requestBody = new RegisterRequest(
+                formData.username,
+                formData.email,
+                formData.firstName,
+                formData.lastName,
+                formData.password
+            );
+
+            const response = await api.post('/uac/v1/auth/register', requestBody);
+
+            const { accessToken, refreshToken, username, role } = response.data;
+
+            login(accessToken, refreshToken, username, role);
+            navigate('/');
+
+        } catch(err: any) {
+            console.error(err);
+            if (err.response && err.response.data && err.response.data.error) {
+                setError(err.response.data.error);
+            } else {
+                setError('Registration failed. Please check your data and try again.');
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -31,6 +73,12 @@ const RegisterPage: React.FC = () => {
                     <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Join us to start coaching your interviews</p>
                 </div>
 
+                {error && (
+                    <div className="mb-6 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-xl border border-red-200 dark:border-red-800">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleRegister} className="flex flex-col gap-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Input 
@@ -40,6 +88,7 @@ const RegisterPage: React.FC = () => {
                             value={formData.firstName}
                             onChange={handleChange}
                             required
+                            disabled={isLoading}
                         />
                         <Input 
                             label="Last Name"
@@ -48,6 +97,7 @@ const RegisterPage: React.FC = () => {
                             value={formData.lastName}
                             onChange={handleChange}
                             required
+                            disabled={isLoading}
                         />
                     </div>
                     
@@ -59,6 +109,7 @@ const RegisterPage: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
+                        disabled={isLoading}
                     />
 
                     <Input 
@@ -68,6 +119,7 @@ const RegisterPage: React.FC = () => {
                         value={formData.username}
                         onChange={handleChange}
                         required
+                        disabled={isLoading}
                     />
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -79,6 +131,7 @@ const RegisterPage: React.FC = () => {
                             value={formData.password}
                             onChange={handleChange}
                             required
+                            disabled={isLoading}
                         />
                         <Input 
                             label="Confirm Password"
@@ -88,11 +141,17 @@ const RegisterPage: React.FC = () => {
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             required
+                            disabled={isLoading}
                         />
                     </div>
 
-                    <Button type="submit" variant="primary" className="w-full py-3 mt-4">
-                        Create Account
+                    <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="w-full py-3 mt-4"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Creating Account...' : 'Create Account'}
                     </Button>
                 </form>
 

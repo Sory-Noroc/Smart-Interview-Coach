@@ -24,7 +24,7 @@ class TokenController(
 ) {
 
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<User> {
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<AuthResponse> {
         val user = User(
             username = request.username,
             email = request.email,
@@ -33,7 +33,10 @@ class TokenController(
             passwordHash = request.password
         )
         val savedUser = userService.registerUser(user)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser)
+        val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
+        val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
+        val authResponse = AuthResponse(accessToken, refreshToken.token, savedUser.username, savedUser.role.name)
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse)
     }
 
     @PostMapping("/login")
