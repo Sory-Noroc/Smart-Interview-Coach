@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext.tsx";
+import { useAuth } from "../../context/AuthContext.tsx";
 import Button from "../ui/Button.tsx";
 import { MoonIcon, SunIcon } from "../ui/Icons.tsx";
 
@@ -18,7 +19,15 @@ const CloseIcon = () => (
 
 function NavBar() {
     const { theme, toggleTheme } = useTheme();
+    const { isAuthenticated, user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        setIsMenuOpen(false);
+        navigate('/login');
+    };
 
     return (
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
@@ -37,19 +46,32 @@ function NavBar() {
                 <div className="flex flex-row items-center gap-2 md:gap-4">
                     <button
                         onClick={toggleTheme}
-                        className="p-2 rounded-lg bg-gray-50 dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
+                        className="p-2 rounded-lg bg-gray-50 dark:bg-gray-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
                         aria-label="Toggle Theme"
                     >
                         {theme === 'light' ? <MoonIcon /> : <SunIcon />}
                     </button>
 
                     <div className="hidden md:flex flex-row items-center gap-2 lg:gap-4">
-                        <Link to="/login">
-                            <Button variant="primary" className="min-w-22">Log In</Button>
-                        </Link>
-                        <Link to="/register">
-                            <Button variant="outline">Register</Button>
-                        </Link>
+                        {isAuthenticated ? (
+                            <>
+                                <span className="text-sm font-medium mr-2">
+                                    Hi, <span className="text-brand-primary font-bold">{user?.username}</span>
+                                </span>
+                                <Button variant="outline" onClick={handleLogout} className="min-w-22">
+                                    Log Out
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login">
+                                    <Button variant="primary" className="min-w-22">Log In</Button>
+                                </Link>
+                                <Link to="/register">
+                                    <Button variant="outline">Register</Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -69,12 +91,25 @@ function NavBar() {
                     <Link to="/about" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">About</Link>
                     <Link to="/demo" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">Demo</Link>
                     <div className="flex flex-col gap-3 pt-2">
-                        <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                            <Button variant="primary" className="w-full">Log In</Button>
-                        </Link>
-                        <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                            <Button variant="outline" className="w-full">Register</Button>
-                        </Link>
+                        {isAuthenticated ? (
+                            <>
+                                <div className="text-center py-2 font-bold text-brand-primary underline">
+                                    {user?.username}
+                                </div>
+                                <Button variant="outline" onClick={handleLogout} className="w-full">
+                                    Log Out
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                                    <Button variant="primary" className="w-full">Log In</Button>
+                                </Link>
+                                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                                    <Button variant="outline" className="w-full">Register</Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

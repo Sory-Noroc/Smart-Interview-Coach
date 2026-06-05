@@ -35,7 +35,7 @@ const LoginPage: React.FC = () => {
             if (err.response && err.response.data && err.response.data.error) {
                 setError(err.response.data.error);
             } else {
-                setError('Invalid username or password. Please try again.');
+                setError('Unexpected Error. Please try again later.');
             }
         } finally {
             setIsLoading(false);

@@ -61,9 +61,10 @@ class AdvancedSecurityTests {
             content = objectMapper.writeValueAsString(invalidRequest)
         }.andExpect {
             status { isBadRequest() }
-            jsonPath("$.username") { exists() }
-            jsonPath("$.email") { exists() }
-            jsonPath("$.password") { exists() }
+            jsonPath("$.error") { exists() }
+            jsonPath("$.error") { value(org.hamcrest.Matchers.containsString("Username")) }
+            jsonPath("$.error") { value(org.hamcrest.Matchers.containsString("Email")) }
+            jsonPath("$.error") { value(org.hamcrest.Matchers.containsString("Password")) }
         }
     }
 
