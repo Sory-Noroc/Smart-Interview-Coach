@@ -33,6 +33,7 @@ data class RegisterRequest(
 )
 
 data class AuthResponse(
+    val id: Long,
     val accessToken: String,
     val refreshToken: String,
     val username: String,

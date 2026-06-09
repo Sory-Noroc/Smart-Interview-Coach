@@ -27,7 +27,6 @@ import reactor.core.publisher.Flux
 import java.util.concurrent.CompletableFuture
 
 @RestController
-@CrossOrigin
 @RequestMapping("/llm/v1")
 class LLMController(
     chatClientBuilder: ChatClient.Builder,
@@ -216,7 +215,12 @@ class LLMController(
         val extractedText = contextService.extractTextFromPdf(resource)
         val summary = contextService.analyzeCV(extractedText)
 
-        storageService.uploadFile(file)
+        try {
+            storageService.uploadFile(file)
+        } catch (e: Exception) {
+            logger.error("S3 Upload Failed", e)
+            return ResponseEntity.internalServerError().body("Failed to upload CV to S3: ${e.message}")
+        }
 
         try {
             val newCV = CV(
@@ -244,8 +248,8 @@ class LLMController(
             userId = userId
         )
         try {
-            contextService.addJobDescription(job)
-            return ResponseEntity.ok("The job '$jobName' was saved.")
+            val savedJob = contextService.addJobDescription(job)
+            return ResponseEntity.ok(savedJob.id.toString())
         } catch (e: Exception) {
             return ResponseEntity.badRequest().body(e.message)
         }

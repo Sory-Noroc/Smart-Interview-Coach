@@ -35,7 +35,7 @@ class TokenController(
         val savedUser = userService.registerUser(user)
         val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
         val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
-        val authResponse = AuthResponse(accessToken, refreshToken.token, savedUser.username, savedUser.role.name)
+        val authResponse = AuthResponse(savedUser.id!!, accessToken, refreshToken.token, savedUser.username, savedUser.role.name)
         return ResponseEntity.status(HttpStatus.CREATED).body(authResponse)
     }
 
@@ -47,7 +47,7 @@ class TokenController(
         val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
         val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
         
-        return ResponseEntity.ok(AuthResponse(accessToken, refreshToken.token, user.username, user.role.name))
+        return ResponseEntity.ok(AuthResponse(user.id!!, accessToken, refreshToken.token, user.username, user.role.name))
     }
 
     @PostMapping("/refresh")
