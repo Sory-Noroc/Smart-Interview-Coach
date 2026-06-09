@@ -48,9 +48,9 @@ const RegisterPage: React.FC = () => {
 
             const response = await api.post('/uac/v1/auth/register', requestBody);
 
-            const { accessToken, refreshToken, username, role } = response.data;
+            const { accessToken, refreshToken, id, username, role } = response.data;
 
-            login(accessToken, refreshToken, username, role);
+            login(accessToken, refreshToken, id, username, role);
             navigate('/');
 
         } catch(err: any) {

@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
+    id: number;
     username: string;
     role: string;
 }
 
 interface AuthContextType {
     user: User | null;
-    login: (accessToken: string, refreshToken: string, username: string, role: string) => void;
+    login: (accessToken: string, refreshToken: string, id: number, username: string, role: string) => void;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -18,21 +19,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
+        const idStr = localStorage.getItem('id');
         const username = localStorage.getItem('username');
         const role = localStorage.getItem('role');
         const token = localStorage.getItem('accessToken');
 
-        if (username && role && token) {
-            setUser({ username, role });
+        if (idStr && username && role && token) {
+            setUser({ id: parseInt(idStr, 10), username, role });
         }
     }, []);
 
-    const login = (accessToken: string, refreshToken: string, username: string, role: string) => {
+    const login = (accessToken: string, refreshToken: string, id: number, username: string, role: string) => {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('id', id.toString());
         localStorage.setItem('username', username);
         localStorage.setItem('role', role);
-        setUser({ username, role });
+        setUser({ id, username, role });
     };
 
     const logout = () => {

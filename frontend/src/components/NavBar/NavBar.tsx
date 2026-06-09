@@ -33,12 +33,14 @@ function NavBar() {
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
                 <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
-                    Prep<span className="text-brand-accent">Forge</span>
+                    Job<span className="text-brand-accent">Acer</span>
                 </Link>
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex flex-row items-center gap-4 lg:gap-8 text-gray-600 dark:text-gray-400">
-                    <Link to="/" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Home</Link>
+                    <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
+                        {isAuthenticated ? "Dashboard" : "Home"}
+                    </Link>
                     <Link to="/about" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">About</Link>
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>

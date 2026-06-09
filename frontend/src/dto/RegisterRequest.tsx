@@ -13,11 +13,11 @@ class RegisterRequest {
         this.password = password;
     }
 
-    private username: string;
-    private email: string;
-    private firstName: string;
-    private lastName: string;
-    private password: string;
+    public username: string;
+    public email: string;
+    public firstName: string;
+    public lastName: string;
+    public password: string;
 
 }
 

@@ -1,19 +1,28 @@
 import axios from 'axios';
 
-const api = axios.create({
+export const uacApi = axios.create({
     baseURL: 'http://localhost:8081', // UAC
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
-// Token Interceptor
-api.interceptors.request.use((config) => {
+export const llmApi = axios.create({
+    baseURL: 'http://localhost:8080', // UserContextualizer
+});
+
+const tokenInterceptor = (config: any) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        if (config.headers && typeof config.headers.set === 'function') {
+            config.headers.set('Authorization', `Bearer ${token}`);
+        } else {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
+        }
     }
     return config;
-});
+};
 
-export default api;
+// Token Interceptor
+uacApi.interceptors.request.use(tokenInterceptor);
+llmApi.interceptors.request.use(tokenInterceptor);
+
+export default uacApi;
