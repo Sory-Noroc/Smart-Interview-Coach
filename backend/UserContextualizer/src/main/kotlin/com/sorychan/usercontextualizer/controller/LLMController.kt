@@ -27,6 +27,7 @@ import reactor.core.publisher.Flux
 import java.util.concurrent.CompletableFuture
 
 @RestController
+@CrossOrigin
 @RequestMapping("/llm/v1")
 class LLMController(
     chatClientBuilder: ChatClient.Builder,
