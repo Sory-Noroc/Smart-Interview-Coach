@@ -55,8 +55,8 @@ const DashboardPage: React.FC = () => {
             });
 
             // Redirect to actual interview chat
-            const { interviewId, question } = response.data;
-            navigate(`/interview/${interviewId}`, { state: { initialQuestion: question } });
+            const { interviewId, firstQuestion } = response.data;
+            navigate(`/interview/${interviewId}`, { state: { initialQuestion: firstQuestion } });
 
         } catch (err: any) {
             console.error(err);
