@@ -60,6 +60,10 @@ class InterviewService(
         return interviewRepository.findById(id).orElse(null)
     }
 
+    fun getInterviewsByUserId(userId: Long): List<Interview> {
+        return interviewRepository.findByUserId(userId)
+    }
+
     fun addInterview(interview: Interview): Interview {
         return interviewRepository.save(interview)
     }

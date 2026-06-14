@@ -8,8 +8,10 @@ export const llmApi = axios.create({
     baseURL: 'http://localhost:8080', // UserContextualizer
 });
 
+const getFromAnyStorage = (key: string) => localStorage.getItem(key) || sessionStorage.getItem(key);
+
 const tokenInterceptor = (config: any) => {
-    const token = localStorage.getItem('accessToken');
+    const token = getFromAnyStorage('accessToken');
     if (token) {
         if (config.headers && typeof config.headers.set === 'function') {
             config.headers.set('Authorization', `Bearer ${token}`);
@@ -60,7 +62,7 @@ const responseErrorInterceptor = async (error: any) => {
         isRefreshing = true;
 
         try {
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = getFromAnyStorage('refreshToken');
             if (!refreshToken) throw new Error('No refresh token available');
 
             // Call the refresh endpoint using standard axios to avoid trigger interceptors again
@@ -69,10 +71,12 @@ const responseErrorInterceptor = async (error: any) => {
             });
 
             const newAccessToken = response.data.accessToken;
-            localStorage.setItem('accessToken', newAccessToken);
-
-            if (response.data.refreshToken) {
-                localStorage.setItem('refreshToken', response.data.refreshToken);
+            
+            // Persist the new token back to where it was found
+            if (localStorage.getItem('refreshToken')) {
+                localStorage.setItem('accessToken', newAccessToken);
+            } else {
+                sessionStorage.setItem('accessToken', newAccessToken);
             }
 
             processQueue(null, newAccessToken);
@@ -82,6 +86,7 @@ const responseErrorInterceptor = async (error: any) => {
         } catch (err) {
             processQueue(err, null);
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = '/login';
             return Promise.reject(err);
         } finally {

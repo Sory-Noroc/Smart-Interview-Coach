@@ -41,6 +41,11 @@ function NavBar() {
                     <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
                         {isAuthenticated ? "Dashboard" : "Home"}
                     </Link>
+                    {isAuthenticated && (
+                        <Link to="/my-interviews" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
+                            My Interviews
+                        </Link>
+                    )}
                     {isAuthenticated && user?.role === 'ADMIN' && (
                         <Link to="/admin" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium text-red-500 dark:text-red-400">
                             Admin

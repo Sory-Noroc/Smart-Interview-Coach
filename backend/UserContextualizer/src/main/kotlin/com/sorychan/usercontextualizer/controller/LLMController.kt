@@ -7,9 +7,9 @@ import com.sorychan.usercontextualizer.data.Job
 import com.sorychan.usercontextualizer.dto.FirstQuestionDTO
 import com.sorychan.usercontextualizer.dto.InterviewFeedbackDTO
 import com.sorychan.usercontextualizer.dto.InterviewMessageDTO
+import com.sorychan.usercontextualizer.dto.InterviewSummaryDTO
 import com.sorychan.usercontextualizer.enums.InterviewStatus
 import com.sorychan.usercontextualizer.enums.Role
-import java.time.LocalDateTime
 import com.sorychan.usercontextualizer.service.ContextService
 import com.sorychan.usercontextualizer.service.InterviewService
 import com.sorychan.usercontextualizer.service.S3StorageService
@@ -120,6 +120,42 @@ class LLMController(
         return ResponseEntity.ok(dtos)
     }
 
+    @GetMapping("/interviews/{interviewId}/feedback")
+    fun getInterviewFeedback(@PathVariable interviewId: Long): ResponseEntity<InterviewFeedbackDTO> {
+        logger.info("GET /interviews/$interviewId/feedback called")
+        val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+        
+        if (interview.status != InterviewStatus.COMPLETED || interview.overallGrade == null) {
+            return ResponseEntity.noContent().build()
+        }
+
+        val feedback = InterviewFeedbackDTO(
+            technicalScore = interview.technicalScore ?: 0.0,
+            communicationScore = interview.communicationScore ?: 0.0,
+            overallGrade = interview.overallGrade ?: 0.0,
+            strengths = interview.strengths?.split(";") ?: emptyList(),
+            weaknesses = interview.weaknesses?.split(";") ?: emptyList(),
+            improvementTips = interview.improvementTips?.split(";") ?: emptyList(),
+            summary = interview.summary ?: ""
+        )
+        
+        return ResponseEntity.ok(feedback)
+    }
+
+    @GetMapping("/interviews/{interviewId}")
+    fun getInterview(@PathVariable interviewId: Long): ResponseEntity<InterviewSummaryDTO> {
+        logger.info("GET /interviews/$interviewId called")
+        val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+        val dto = InterviewSummaryDTO(
+            id = interview.id!!,
+            userId = interview.userId!!,
+            name = interview.name,
+            status = interview.status,
+            createdAt = interview.createdAt
+        )
+        return ResponseEntity.ok(dto)
+    }
+
     @PostMapping("/interviews/{id}/user/{userId}/finish")
     fun finishInterview(
         @PathVariable id: Long,
@@ -144,8 +180,7 @@ class LLMController(
         logger.info("Prompt for rating: {}", messages)
 
         interview.status = InterviewStatus.COMPLETED
-        interviewService.updateOrAddInterview(interview)
-
+        
         val feedback = chatClient.prompt()
             .messages(messages)
             .call()
@@ -153,10 +188,22 @@ class LLMController(
 
         try {
             val feedbackJson = converter.convert(feedback)
+
+            interview.technicalScore = feedbackJson?.technicalScore
+            interview.communicationScore = feedbackJson?.communicationScore
+            interview.overallGrade = feedbackJson?.overallGrade
+            interview.strengths = feedbackJson?.strengths?.joinToString(";")
+            interview.weaknesses = feedbackJson?.weaknesses?.joinToString(";")
+            interview.improvementTips = feedbackJson?.improvementTips?.joinToString(";")
+            interview.summary = feedbackJson?.summary
+            
+            interviewService.updateOrAddInterview(interview)
+            
             return ResponseEntity.ok(feedbackJson)
         } catch (e: Exception) {
-            logger.error(e.message)
-            return ResponseEntity.notFound().build()
+            logger.error("Feedback conversion failed: ${e.message}")
+            interviewService.updateOrAddInterview(interview)
+            return ResponseEntity.ok(null)
         }
     }
 
@@ -205,6 +252,22 @@ class LLMController(
         }
 
         return ResponseEntity.ok(aiResponse)
+    }
+
+    @GetMapping("/interviews/user/{userId}")
+    fun getInterviewsByUser(@PathVariable userId: Long): ResponseEntity<List<InterviewSummaryDTO>> {
+        logger.info("GET /interviews/user/$userId called")
+        val interviews = interviewService.getInterviewsByUserId(userId)
+        val dtos = interviews.map { interview ->
+            InterviewSummaryDTO(
+                id = interview.id!!,
+                userId = interview.userId!!,
+                name = interview.name,
+                status = interview.status,
+                createdAt = interview.createdAt
+            )
+        }
+        return ResponseEntity.ok(dtos)
     }
 
     /**

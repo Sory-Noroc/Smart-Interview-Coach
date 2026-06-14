@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import api from '../../api/axios';
@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 const LoginPage: React.FC = () => {
     const [usernameOrEmail, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -27,11 +28,10 @@ const LoginPage: React.FC = () => {
 
             const { accessToken, refreshToken, id, username: userRes, role } = response.data;
 
-            login(accessToken, refreshToken, id, userRes, role);
+            login(accessToken, refreshToken, id, userRes, role, rememberMe);
             navigate('/');
         } catch (err: any) {
-            // for debugging only
-            console.log(err)
+            console.error(err);
             if (err.response && err.response.data && err.response.data.error) {
                 setError(err.response.data.error);
             } else {
@@ -78,10 +78,15 @@ const LoginPage: React.FC = () => {
 
                     <div className="flex items-center justify-between text-sm">
                         <label className="flex items-center gap-2 cursor-pointer text-gray-600 dark:text-gray-400">
-                            <input type="checkbox" className="rounded border-gray-300 dark:border-gray-700" />
+                            <input 
+                                type="checkbox" 
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="rounded border-gray-300 dark:border-gray-700" 
+                            />
                             Remember me
                         </label>
-                        <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
+                        <Link to="/forgot-password" className="text-blue-500 hover:underline">Forgot password?</Link>
                     </div>
 
                     <Button
@@ -96,7 +101,7 @@ const LoginPage: React.FC = () => {
 
                 <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account?{' '}
-                    <a href="/register" className="text-blue-500 font-bold hover:underline">Sign up for free</a>
+                    <Link to="/register" className="text-blue-500 font-bold hover:underline">Sign up for free</Link>
                 </div>
             </div>
         </div>

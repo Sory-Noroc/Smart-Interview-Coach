@@ -33,6 +33,7 @@ const InterviewPage: React.FC = () => {
     const [isFinishing, setIsFinishing] = useState(false);
     const [feedback, setFeedback] = useState<Feedback | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'chat' | 'feedback'>('chat');
 
     const hasFetched = useRef(false);
 
@@ -46,8 +47,28 @@ const InterviewPage: React.FC = () => {
         if (hasFetched.current) return;
         hasFetched.current = true;
 
-        const loadMessages = async () => {
+        const loadData = async () => {
             try {
+                // Fetch Interview Details to check status
+                const interviewRes = await llmApi.get(`/llm/v1/interviews/${interviewId}`);
+                const isCompleted = interviewRes.data.status === 'COMPLETED';
+
+                // Fetch feedback if completed
+                if (isCompleted) {
+                    try {
+                        const feedbackRes = await llmApi.get(`/llm/v1/interviews/${interviewId}/feedback`);
+                        if (feedbackRes.status === 200 && feedbackRes.data) {
+                            setFeedback(feedbackRes.data);
+                            // Setting initial viewMode (if exists) or default (feedback)
+                            const initialMode = location.state?.initialViewMode || 'feedback';
+                            setViewMode(initialMode);
+                        }
+                    } catch (fErr) {
+                        console.warn('Feedback not found even if completed:', fErr);
+                    }
+                }
+
+                // Fetch messages
                 const response = await llmApi.get(`/llm/v1/interviews/${interviewId}/messages`);
                 if (response.data && response.data.length > 0) {
                     const mapped = response.data.map((msg: any) => ({
@@ -58,7 +79,6 @@ const InterviewPage: React.FC = () => {
                     }));
                     setMessages(mapped);
                 } else if (location.state?.initialQuestion) {
-                    // Fallback to location state initial question
                     setMessages([
                         {
                             id: 'first',
@@ -69,23 +89,12 @@ const InterviewPage: React.FC = () => {
                     ]);
                 }
             } catch (err: any) {
-                console.error('Failed to fetch messages:', err);
-                if (location.state?.initialQuestion) {
-                    setMessages([
-                        {
-                            id: 'first',
-                            text: location.state.initialQuestion,
-                            isAI: true,
-                            timestamp: formatTime()
-                        }
-                    ]);
-                } else {
-                    setError('Failed to load interview. Please go back and try again.');
-                }
+                console.error('Failed to fetch data:', err);
+                setError('Failed to load interview details.');
             }
         };
 
-        loadMessages();
+        loadData();
     }, [interviewId, location.state]);
 
     const handleSendMessage = async (text: string) => {
@@ -143,6 +152,7 @@ const InterviewPage: React.FC = () => {
         try {
             const response = await llmApi.post(`/llm/v1/interviews/${interviewId}/user/${user?.id || 0}/finish`);
             setFeedback(response.data);
+            setViewMode('feedback');
         } catch (err: any) {
             console.error('Failed to finish interview:', err);
             setError('Could not compile feedback. Make sure you answered enough questions before finishing.');
@@ -163,7 +173,7 @@ const InterviewPage: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="px-6 py-2.5 bg-brand-primary text-white rounded-xl hover:bg-brand-accent-light transition-all active:scale-95 cursor-pointer"
+                    className="px-6 py-2.5 bg-brand-primary text-white rounded-xl hover:bg-brand-accent transition-all active:scale-95 cursor-pointer"
                 >
                     Back to Dashboard
                 </button>
@@ -171,7 +181,7 @@ const InterviewPage: React.FC = () => {
         );
     }
 
-    if (feedback) {
+    if (feedback && viewMode === 'feedback') {
         return (
             <div className="max-w-5xl mx-auto px-4 py-12 transition-colors duration-300">
                 <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -182,22 +192,27 @@ const InterviewPage: React.FC = () => {
                         <h1 className="text-4xl font-extrabold text-black dark:text-white mt-2 mb-1">
                             Your Performance Feedback
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Here is a structured assessment based on your answers during the simulated session.
-                        </p>
                     </div>
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-brand-primary hover:bg-brand-accent-light text-white font-medium rounded-xl shadow-lg shadow-gray-200 dark:shadow-none transition-all active:scale-95 cursor-pointer"
-                    >
-                        Back to Dashboard
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setViewMode('chat')}
+                            className="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-200 transition-all active:scale-95 cursor-pointer"
+                        >
+                            View Chat History
+                        </button>
+                        <button
+                            onClick={() => navigate('/dashboard')}
+                            className="px-6 py-3 bg-brand-primary hover:bg-brand-secondary text-white font-medium rounded-xl shadow-lg shadow-gray-200 dark:shadow-none transition-all active:scale-95 cursor-pointer"
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
                 </div>
 
                 {/* Score Summary Dashboard */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {/* Overall Grade Card */}
-                    <div className="p-8 bg-gradient-to-br from-brand-primary to-brand-accent-light text-white rounded-3xl shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <div className="p-8 bg-gradient-to-br from-brand-primary to-brand-accent text-white rounded-3xl shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
                         <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
                         <h3 className="text-lg font-medium opacity-80 mb-4">Overall Score</h3>
                         <div className="relative flex items-center justify-center">
@@ -340,30 +355,52 @@ const InterviewPage: React.FC = () => {
             <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/80 dark:bg-black/80 backdrop-blur-md sticky top-0 z-10">
                 <div>
                     <h2 className="text-xl font-bold text-black dark:text-white">AI Interview Simulation</h2>
-                    <p className="text-xs text-brand-primary font-semibold uppercase tracking-wider">Live Session</p>
+                    <p className="text-xs text-brand-primary font-semibold uppercase tracking-wider">
+                        {feedback ? 'Review Mode' : 'Live Session'}
+                    </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Connected</span>
-                    </div>
-                    <button
-                        onClick={handleFinishInterview}
-                        disabled={isFinishing}
-                        className="px-4 py-2 text-xs md:text-sm font-bold bg-brand-accent hover:bg-brand-accent/90 text-white rounded-xl cursor-pointer disabled:opacity-50 transition-all active:scale-95"
-                    >
-                        {isFinishing ? 'Processing...' : 'Finish Interview'}
-                    </button>
+                    {feedback && (
+                        <button
+                            onClick={() => setViewMode('feedback')}
+                            className="px-4 py-2 text-xs md:text-sm font-bold bg-green-500 hover:bg-green-600 text-white rounded-xl cursor-pointer transition-all active:scale-95"
+                        >
+                            View Feedback
+                        </button>
+                    )}
+                    {!feedback && (
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Connected</span>
+                        </div>
+                    )}
+                    {!feedback && (
+                        <button
+                            onClick={handleFinishInterview}
+                            disabled={isFinishing}
+                            className="px-4 py-2 text-xs md:text-sm font-bold bg-brand-accent hover:bg-brand-accent/90 text-white rounded-xl cursor-pointer disabled:opacity-50 transition-all active:scale-95"
+                        >
+                            {isFinishing ? 'Processing...' : 'Finish Interview'}
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Chat Messages */}
             <ChatContainer messages={messages} isTyping={isTyping} />
 
-            {/* Input Bar */}
-            <div className="max-w-4xl w-full mx-auto">
-                <ChatInput onSendMessage={handleSendMessage} disabled={isTyping || isFinishing} />
-            </div>
+            {/* Input Bar - only show if not finished */}
+            {!feedback && (
+                <div className="max-w-4xl w-full mx-auto">
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isTyping || isFinishing} />
+                </div>
+            )}
+            
+            {feedback && (
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 italic">
+                    This interview is completed. You can review the messages above or switch to the feedback report.
+                </div>
+            )}
         </div>
     );
 };

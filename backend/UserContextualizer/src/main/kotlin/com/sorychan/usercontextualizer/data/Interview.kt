@@ -32,5 +32,21 @@ class Interview(
     var status: InterviewStatus = InterviewStatus.STARTED,
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
+    var createdAt: LocalDateTime = LocalDateTime.now(),
+
+    var technicalScore: Double? = null,
+    var communicationScore: Double? = null,
+    var overallGrade: Double? = null,
+
+    @Column(columnDefinition = "TEXT")
+    var strengths: String? = null,
+
+    @Column(columnDefinition = "TEXT")
+    var weaknesses: String? = null,
+
+    @Column(columnDefinition = "TEXT")
+    var improvementTips: String? = null,
+
+    @Column(columnDefinition = "TEXT")
+    var summary: String? = null
 )
