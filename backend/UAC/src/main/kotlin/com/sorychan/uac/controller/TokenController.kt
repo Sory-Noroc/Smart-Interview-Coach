@@ -24,7 +24,7 @@ class TokenController(
 ) {
 
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<AuthResponse> {
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<Map<String, String>> {
         val user = User(
             username = request.username,
             email = request.email,
@@ -32,11 +32,22 @@ class TokenController(
             lastName = request.lastName,
             passwordHash = request.password
         )
-        val savedUser = userService.registerUser(user)
-        val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
-        val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
-        val authResponse = AuthResponse(savedUser.id!!, accessToken, refreshToken.token, savedUser.username, savedUser.role.name)
-        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse)
+        userService.registerUser(user)
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "Registration successful. Please check your email for the verification code."))
+    }
+
+    @PostMapping("/verify")
+    fun verify(@RequestBody request: Map<String, String>): ResponseEntity<Map<String, String>> {
+        val token = request["token"] ?: throw RuntimeException("Verification token is required")
+        userService.verifyUser(token)
+        return ResponseEntity.ok(mapOf("message" to "Account verified successfully. You can now log in."))
+    }
+
+    @PostMapping("/resend-verification")
+    fun resendVerification(@RequestBody request: Map<String, String>): ResponseEntity<Map<String, String>> {
+        val email = request["email"] ?: throw RuntimeException("Email is required")
+        userService.resendVerificationCode(email)
+        return ResponseEntity.ok(mapOf("message" to "Verification code resent successfully."))
     }
 
     @PostMapping("/login")

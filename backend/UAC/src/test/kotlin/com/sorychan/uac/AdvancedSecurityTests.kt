@@ -69,16 +69,33 @@ class AdvancedSecurityTests {
     }
 
     @Test
+    fun `should prevent login for unverified user`() {
+        val registerRequest = RegisterRequest("unverified", "unverified@test.com", "U", "V", "password123")
+        mockMvc.post("/uac/v1/auth/register") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(registerRequest)
+        }.andExpect {
+            status { isCreated() }
+        }
+
+        mockMvc.post("/uac/v1/auth/login") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(LoginRequest("unverified", "password123"))
+        }.andExpect {
+            status { isUnauthorized() }
+        }
+    }
+
+    @Test
     fun `should prevent login for disabled user`() {
         val registerRequest = RegisterRequest("blocked", "blocked@test.com", "B", "L", "password123")
         mockMvc.post("/uac/v1/auth/register") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(registerRequest)
-        } .andExpect {
-            status { isCreated() }
         }
 
         val user = userRepository.findByUsernameOrEmail("blocked").get()
+        user.isVerified = true
         user.isEnabled = false
         userRepository.save(user)
 
@@ -97,6 +114,11 @@ class AdvancedSecurityTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(regRequest)
         }
+        
+        val user = userRepository.findByUsernameOrEmail("elevate").get()
+        user.isVerified = true
+        user.isEnabled = true
+        userRepository.save(user)
 
         val adminUser = com.sorychan.uac.model.User(
             username = "admin",
@@ -151,6 +173,11 @@ class AdvancedSecurityTests {
             content = objectMapper.writeValueAsString(regRequest)
         }
 
+        val userForReset = userRepository.findByUsernameOrEmail("resetme").get()
+        userForReset.isVerified = true
+        userForReset.isEnabled = true
+        userRepository.save(userForReset)
+
         mockMvc.post("/uac/v1/auth/forgot-password") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(ForgotPasswordRequest("reset@test.com"))
@@ -182,6 +209,11 @@ class AdvancedSecurityTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(regRequest)
         }
+
+        val user = userRepository.findByUsernameOrEmail("refreshuser").get()
+        user.isVerified = true
+        user.isEnabled = true
+        userRepository.save(user)
 
         val loginResponse = mockMvc.post("/uac/v1/auth/login") {
             contentType = MediaType.APPLICATION_JSON

@@ -34,7 +34,10 @@ class User (
     @Enumerated(EnumType.STRING)
     var role: Role = Role.USER,
 
-    var isEnabled: Boolean = true,
+    var isEnabled: Boolean = false,
+    var isVerified: Boolean = false,
+    var verificationToken: String? = null,
+    var verificationTokenExpiry: LocalDateTime? = null,
     var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)

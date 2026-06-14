@@ -17,7 +17,7 @@ const RegisterPage: React.FC = () => {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -46,14 +46,11 @@ const RegisterPage: React.FC = () => {
                 formData.password
             );
 
-            const response = await api.post('/uac/v1/auth/register', requestBody);
+            await api.post('/uac/v1/auth/register', requestBody);
 
-            const { accessToken, refreshToken, id, username, role } = response.data;
+            navigate('/verify', { state: { email: formData.email } });
 
-            login(accessToken, refreshToken, id, username, role);
-            navigate('/');
-
-        } catch(err: any) {
+        } catch (err: any) {
             console.error(err);
             if (err.response && err.response.data && err.response.data.error) {
                 setError(err.response.data.error);
@@ -81,47 +78,47 @@ const RegisterPage: React.FC = () => {
 
                 <form onSubmit={handleRegister} className="flex flex-col gap-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <Input 
+                        <Input
                             label="First Name"
                             name="firstName"
-                            placeholder="Sorin"
+                            placeholder="Tom"
                             value={formData.firstName}
                             onChange={handleChange}
                             required
                             disabled={isLoading}
                         />
-                        <Input 
+                        <Input
                             label="Last Name"
                             name="lastName"
-                            placeholder="Noroc"
+                            placeholder="Sawyer"
                             value={formData.lastName}
                             onChange={handleChange}
                             required
                             disabled={isLoading}
                         />
                     </div>
-                    
-                    <Input 
+
+                    <Input
                         label="Email"
                         type="email"
                         name="email"
-                        placeholder="sorin@company.com"
+                        placeholder="tomsaywer@company.com"
                         value={formData.email}
                         onChange={handleChange}
                         required
                         disabled={isLoading}
                     />
 
-                    <Input 
+                    <Input
                         label="Username"
                         name="username"
-                        placeholder="sorinnoroc123"
+                        placeholder="Your Username"
                         value={formData.username}
                         onChange={handleChange}
                         required
                         disabled={isLoading}
                     />
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Input
                             label="Password"
@@ -133,7 +130,7 @@ const RegisterPage: React.FC = () => {
                             required
                             disabled={isLoading}
                         />
-                        <Input 
+                        <Input
                             label="Confirm Password"
                             type="password"
                             name="confirmPassword"
@@ -145,9 +142,9 @@ const RegisterPage: React.FC = () => {
                         />
                     </div>
 
-                    <Button 
-                        type="submit" 
-                        variant="primary" 
+                    <Button
+                        type="submit"
+                        variant="primary"
                         className="w-full py-3 mt-4"
                         disabled={isLoading}
                     >

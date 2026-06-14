@@ -25,7 +25,7 @@ data class ChangePasswordRequest(
     val oldPassword: String,
 
     @field:NotBlank(message = "New password is required")
-    @field:Size(min = 6, message = "New password must be at least 6 characters long")
+    @field:Size(min = 10, message = "New password must be at least 10 characters long")
     val newPassword: String
 )
 

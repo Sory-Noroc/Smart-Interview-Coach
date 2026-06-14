@@ -13,6 +13,7 @@ interface UserRepository : JpaRepository<User, Long> {
 
     fun findByEmail(email: String): Optional<User>
     fun findByResetToken(token: String): Optional<User>
+    fun findByVerificationToken(token: String): Optional<User>
     fun existsByUsername(username: String): Boolean
     fun existsByEmail(email: String): Boolean
 }

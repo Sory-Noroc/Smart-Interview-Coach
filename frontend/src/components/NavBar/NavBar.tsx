@@ -41,6 +41,11 @@ function NavBar() {
                     <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
                         {isAuthenticated ? "Dashboard" : "Home"}
                     </Link>
+                    {isAuthenticated && user?.role === 'ADMIN' && (
+                        <Link to="/admin" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium text-red-500 dark:text-red-400">
+                            Admin
+                        </Link>
+                    )}
                     <Link to="/about" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">About</Link>
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
@@ -57,9 +62,14 @@ function NavBar() {
                     <div className="hidden md:flex flex-row items-center gap-2 lg:gap-4">
                         {isAuthenticated ? (
                             <>
-                                <span className="text-sm font-medium mr-2">
-                                    Hi, <span className="text-brand-primary font-bold">{user?.username}</span>
-                                </span>
+                                <Link to="/profile" className="flex items-center gap-3 group transition-all mr-2">
+                                    <div className="w-10 h-10 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-lg shadow-md shadow-brand-primary/20 group-hover:scale-105 transition-transform">
+                                        {user?.username?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-brand-primary transition-colors">
+                                        {user?.username}
+                                    </span>
+                                </Link>
                                 <Button variant="outline" onClick={handleLogout} className="min-w-22">
                                     Log Out
                                 </Button>
@@ -77,7 +87,7 @@ function NavBar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <button 
+                    <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="md:hidden p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-all cursor-pointer"
                     >

@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -26,7 +26,7 @@ const LoginPage: React.FC = () => {
             });
 
             const { accessToken, refreshToken, id, username: userRes, role } = response.data;
-            
+
             login(accessToken, refreshToken, id, userRes, role);
             navigate('/');
         } catch (err: any) {
@@ -57,16 +57,16 @@ const LoginPage: React.FC = () => {
                 )}
 
                 <form onSubmit={handleLogin} className="flex flex-col gap-6">
-                    <Input 
-                        label="Username"
-                        placeholder="Enter your username"
+                    <Input
+                        label="Username/Email"
+                        placeholder="Enter your username or email"
                         value={usernameOrEmail}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                         disabled={isLoading}
                     />
-                    
-                    <Input 
+
+                    <Input
                         label="Password"
                         type="password"
                         placeholder="••••••••"
@@ -84,9 +84,9 @@ const LoginPage: React.FC = () => {
                         <a href="#" className="text-blue-500 hover:underline">Forgot password?</a>
                     </div>
 
-                    <Button 
-                        type="submit" 
-                        variant="primary" 
+                    <Button
+                        type="submit"
+                        variant="primary"
                         className="w-full py-3 mt-2"
                         disabled={isLoading}
                     >

@@ -51,8 +51,12 @@ class AuthIntegrationTests {
             content = objectMapper.writeValueAsString(registerRequest)
         }.andExpect {
             status { isCreated() }
-            jsonPath("$.username") { value("testuser") }
         }
+        // Verify user
+        val registeredUser = userRepository.findByEmail(registerRequest.email).get()
+        registeredUser.isVerified = true
+        registeredUser.isEnabled = true
+        userRepository.save(registeredUser)
 
         // Login
         var loginRequest = LoginRequest("testuser", "password123")
@@ -100,7 +104,7 @@ class AuthIntegrationTests {
 
     @Test
     fun `should restrict admin endpoints for regular users`() {
-        // Register regular user
+        // Register and verify regular user
         val registerRequest = RegisterRequest(
             username = "regular",
             email = "reg@example.com",
@@ -112,11 +116,15 @@ class AuthIntegrationTests {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(registerRequest)
         }
+        val user = userRepository.findByEmail(registerRequest.email).get()
+        user.isVerified = true
+        user.isEnabled = true
+        userRepository.save(user)
 
         // Login
         val loginResponse = mockMvc.post("/uac/v1/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = objectMapper.writeValueAsString(LoginRequest("regular", "password123"))
+            content = objectMapper.writeValueAsString(LoginRequest("reg@example.com", "password123"))
         }.andReturn()
         
         val token = objectMapper.readTree(loginResponse.response.contentAsString).get("accessToken").asText()

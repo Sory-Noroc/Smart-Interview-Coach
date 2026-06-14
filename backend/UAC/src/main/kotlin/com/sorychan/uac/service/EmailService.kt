@@ -11,6 +11,28 @@ class EmailService(
 ) {
 
     @Async
+    fun sendVerificationEmail(to: String, token: String) {
+        val message = SimpleMailMessage()
+        message.setTo(to)
+        message.subject = "Account Verification"
+        message.text = """
+                Hello,
+                
+                Thank you for registering with JobAcer! 
+                Please use the following code to verify your account:
+                
+                $token
+                
+                If you did not create an account, please ignore this email.
+                
+                Sincerely,
+                JobAcer Team
+            """.trimIndent()
+        
+        mailSender.send(message)
+    }
+
+    @Async
     fun sendPasswordResetEmail(to: String, token: String) {
         val message = SimpleMailMessage()
         message.setTo(to)
@@ -27,7 +49,7 @@ class EmailService(
                 If you did not request this, please ignore this email.
                 
                 Sincerely,
-                Smart Interview Coach Team
+                JobAcer Team
             """.trimIndent()
         
         mailSender.send(message)

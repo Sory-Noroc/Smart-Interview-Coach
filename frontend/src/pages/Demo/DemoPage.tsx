@@ -10,7 +10,7 @@ interface Message {
 }
 
 const DEMO_QUESTIONS = [
-    "Hello! I'm your PrepForge AI coach. Ready for a quick demo? Let's start: Can you tell me a bit about yourself?",
+    "Hello! I'm your JobAcer coach. Ready for a quick demo? Let's start: Can you tell me a bit about yourself?",
     "That's interesting! Now, what would you say is your greatest professional achievement?",
     "Great! And finally, why do you want to work with us specifically?",
     "Thank you for participating in this demo! In the full version, I will analyze your CV and the job description to give you personalized feedback. Ready to ace your real interview?"

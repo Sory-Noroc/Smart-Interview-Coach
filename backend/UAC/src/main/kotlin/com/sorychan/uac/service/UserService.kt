@@ -47,12 +47,53 @@ class UserService(
         } catch (ex: NullPointerException) {
             throw RuntimeException("Password hash exception")
         }
-        return userRepository.save(user)
+
+        val token = UUID.randomUUID().toString().take(6).uppercase()
+        user.verificationToken = token
+        user.verificationTokenExpiry = LocalDateTime.now().plusDays(1)
+        user.isEnabled = false
+        user.isVerified = false
+
+        val savedUser = userRepository.save(user)
+        emailService.sendVerificationEmail(savedUser.email, token)
+        
+        return savedUser
+    }
+
+    fun verifyUser(token: String) {
+        val user = userRepository.findByVerificationToken(token)
+            .orElseThrow { RuntimeException("Invalid verification code") }
+
+        if (user.verificationTokenExpiry?.isBefore(LocalDateTime.now()) == true) {
+            throw RuntimeException("Verification code has expired")
+        }
+
+        user.isVerified = true
+        user.isEnabled = true
+        user.verificationToken = null
+        user.verificationTokenExpiry = null
+        userRepository.save(user)
+    }
+
+    fun resendVerificationCode(email: String) {
+        val user = userRepository.findByEmail(email)
+            .orElseThrow { RuntimeException("User not found") }
+        
+        if (user.isVerified) {
+            throw RuntimeException("Account is already verified")
+        }
+
+        val token = UUID.randomUUID().toString().take(6).uppercase()
+        user.verificationToken = token
+        user.verificationTokenExpiry = LocalDateTime.now().plusDays(1)
+        
+        userRepository.save(user)
+        emailService.sendVerificationEmail(user.email, token)
     }
 
     fun authenticate(loginInput: String, passwordRaw: String): User? {
         val user = userRepository.findByUsernameOrEmail(loginInput).orElse(null)
-        if (user != null && user.isEnabled && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
+        if (user != null && user.isEnabled && user.isVerified && passwordEncoder.matches(passwordRaw, user.passwordHash)) {
             return user
         }
         return null
