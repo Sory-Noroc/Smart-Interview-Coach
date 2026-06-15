@@ -10,6 +10,7 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import InterviewPage from './pages/Interview/InterviewPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import MyInterviewsPage from './pages/MyInterviews/MyInterviewsPage';
+import AdminPage from './pages/Admin/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminPage />
               </ProtectedRoute>
             } 
           />

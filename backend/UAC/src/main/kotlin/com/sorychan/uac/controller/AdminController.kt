@@ -22,7 +22,8 @@ class AdminController(
                 email = user.email,
                 firstName = user.firstName,
                 lastName = user.lastName,
-                role = user.role.name
+                role = user.role.name,
+                isEnabled = user.isEnabled
             )
         }
         return ResponseEntity.ok(users)

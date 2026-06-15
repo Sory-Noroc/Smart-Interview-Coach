@@ -29,7 +29,8 @@ class UserController(
                 email = user.email,
                 firstName = user.firstName,
                 lastName = user.lastName,
-                role = user.role.name
+                role = user.role.name,
+                isEnabled = user.isEnabled
                 )
             )
         } catch (e: NullPointerException) {
@@ -49,7 +50,8 @@ class UserController(
                     email = updatedUser.email,
                     firstName = updatedUser.firstName,
                     lastName = updatedUser.lastName,
-                    role = updatedUser.role.name
+                    role = updatedUser.role.name,
+                    isEnabled = updatedUser.isEnabled
                 )
             )
         } catch (e: NullPointerException) {

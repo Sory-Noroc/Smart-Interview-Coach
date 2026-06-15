@@ -1,5 +1,6 @@
 package com.sorychan.uac.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -9,7 +10,9 @@ data class UserProfileResponse(
     val email: String,
     val firstName: String,
     val lastName: String,
-    val role: String
+    val role: String,
+    @get:JsonProperty("isEnabled")
+    val isEnabled: Boolean
 )
 
 data class UpdateProfileRequest(

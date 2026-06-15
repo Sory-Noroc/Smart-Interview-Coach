@@ -51,7 +51,6 @@ function NavBar() {
                             Admin
                         </Link>
                     )}
-                    <Link to="/about" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">About</Link>
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
 
