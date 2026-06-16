@@ -6,7 +6,7 @@ import FileUpload from '../../components/ui/FileUpload';
 import { llmApi } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
-const DashboardPage: React.FC = () => {
+const SetupPage: React.FC = () => {
     const [jobName, setJobName] = useState('');
     const [jobDescription, setJobDescription] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -32,10 +32,10 @@ const DashboardPage: React.FC = () => {
             formData.append('file', selectedFile);
             formData.append('userId', user?.id?.toString() || '0');
 
-            await llmApi.post('/llm/v1/upload-cv', formData);
+            await llmApi.post('/interview/v1/upload-cv', formData);
 
             // Upload job description
-            const jobResponse = await llmApi.post('/llm/v1/upload-job', null, {
+            const jobResponse = await llmApi.post('/interview/v1/upload-job', null, {
                 params: {
                     jobName,
                     description: jobDescription,
@@ -60,7 +60,11 @@ const DashboardPage: React.FC = () => {
 
         } catch (err: any) {
             console.error(err);
-            setError('Failed to setup interview. Please try again.');
+            if (err.response?.status === 429) {
+                setError('AI Rate limit reached. Please wait a minute before starting a new interview.');
+            } else {
+                setError('Failed to setup interview. Please check your data and try again.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -160,4 +164,4 @@ const DashboardPage: React.FC = () => {
     );
 };
 
-export default DashboardPage;
+export default SetupPage;

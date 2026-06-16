@@ -6,10 +6,10 @@ import VerifyPage from './pages/Verify/VerifyPage';
 import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
 import HomePage from './pages/Home/HomePage';
 import DemoPage from './pages/Demo/DemoPage';
-import DashboardPage from './pages/Dashboard/DashboardPage';
+import DashboardPage from './pages/MyInterviews/MyInterviewsPage';
+import SetupPage from './pages/Setup/SetupPage';
 import InterviewPage from './pages/Interview/InterviewPage';
 import ProfilePage from './pages/Profile/ProfilePage';
-import MyInterviewsPage from './pages/MyInterviews/MyInterviewsPage';
 import AdminPage from './pages/Admin/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -34,10 +34,10 @@ function App() {
             } 
           />
           <Route 
-            path="/my-interviews" 
+            path="/setup" 
             element={
               <ProtectedRoute>
-                <MyInterviewsPage />
+                <SetupPage />
               </ProtectedRoute>
             } 
           />

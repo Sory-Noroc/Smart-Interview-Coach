@@ -50,13 +50,13 @@ const InterviewPage: React.FC = () => {
         const loadData = async () => {
             try {
                 // Fetch Interview Details to check status
-                const interviewRes = await llmApi.get(`/llm/v1/interviews/${interviewId}`);
+                const interviewRes = await llmApi.get(`/interview/v1/interviews/${interviewId}`);
                 const isCompleted = interviewRes.data.status === 'COMPLETED';
 
                 // Fetch feedback if completed
                 if (isCompleted) {
                     try {
-                        const feedbackRes = await llmApi.get(`/llm/v1/interviews/${interviewId}/feedback`);
+                        const feedbackRes = await llmApi.get(`/interview/v1/interviews/${interviewId}/feedback`);
                         if (feedbackRes.status === 200 && feedbackRes.data) {
                             setFeedback(feedbackRes.data);
                             // Setting initial viewMode (if exists) or default (feedback)
@@ -69,7 +69,7 @@ const InterviewPage: React.FC = () => {
                 }
 
                 // Fetch messages
-                const response = await llmApi.get(`/llm/v1/interviews/${interviewId}/messages`);
+                const response = await llmApi.get(`/interview/v1/interviews/${interviewId}/messages`);
                 if (response.data && response.data.length > 0) {
                     const mapped = response.data.map((msg: any) => ({
                         id: msg.id?.toString() || Math.random().toString(),
@@ -133,10 +133,16 @@ const InterviewPage: React.FC = () => {
             );
         } catch (err: any) {
             console.error('Request failed:', err);
+            let errorMessage = 'Sorry, I encountered an issue. Please try sending your response again.';
+            
+            if (err.response?.status === 429) {
+                errorMessage = 'AI Rate limit reached. Please wait a minute before sending your next answer.';
+            }
+
             setMessages(prev =>
                 prev.map(m =>
                     m.id === aiMessageId
-                        ? { ...m, text: 'Sorry, I encountered an issue. Please try sending your response again.' }
+                        ? { ...m, text: errorMessage }
                         : m
                 )
             );

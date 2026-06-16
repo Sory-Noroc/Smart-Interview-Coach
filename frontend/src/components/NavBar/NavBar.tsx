@@ -32,7 +32,7 @@ function NavBar() {
     return (
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
-                <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer md:min-w-65">
+                <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer">
                     Job<span className="text-brand-accent">Acer</span>
                 </Link>
 
@@ -41,11 +41,6 @@ function NavBar() {
                     <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
                         {isAuthenticated ? "Dashboard" : "Home"}
                     </Link>
-                    {isAuthenticated && (
-                        <Link to="/my-interviews" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
-                            My Interviews
-                        </Link>
-                    )}
                     {isAuthenticated && user?.role === 'ADMIN' && (
                         <Link to="/admin" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium text-red-500 dark:text-red-400">
                             Admin
@@ -55,6 +50,13 @@ function NavBar() {
                 </div>
 
                 <div className="flex flex-row items-center gap-2 md:gap-4">
+                    {isAuthenticated && (
+                        <Link to="/setup" className="hidden lg:block">
+                            <Button variant="primary" className="bg-brand-accent text-white border-brand-accent hover:bg-brand-accent/90">
+                                Start Interview
+                            </Button>
+                        </Link>
+                    )}
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-lg bg-gray-50 dark:bg-gray-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"

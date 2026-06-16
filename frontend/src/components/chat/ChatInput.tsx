@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface ChatInputProps {
     onSendMessage: (message: string) => void;
@@ -7,6 +7,14 @@ interface ChatInputProps {
 
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
     const [message, setMessage] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Auto-focus input when it becomes enabled
+    useEffect(() => {
+        if (!disabled) {
+            inputRef.current?.focus();
+        }
+    }, [disabled]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,6 +30,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
             className="flex flex-row items-center gap-2 p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
         >
             <input
+                ref={inputRef}
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
