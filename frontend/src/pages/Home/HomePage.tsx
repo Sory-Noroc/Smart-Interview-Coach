@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from "../../components/ui/Button.tsx";
+import {useAuth} from "../../context/AuthContext.tsx";
 
 const HomePage: React.FC = () => {
+    const {isAuthenticated} = useAuth();
     return (
         <div className="relative overflow-hidden bg-white dark:bg-black transition-colors duration-300">
             {/* Background Decorative Elements */}
@@ -27,14 +29,14 @@ const HomePage: React.FC = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link to="/register">
+                        <Link to={isAuthenticated ? "/dashboard" : "/login"}>
                             <Button variant="primary" className="w-full sm:w-auto px-10 py-4 text-lg rounded-2xl shadow-xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
                                 Get Started Now
                             </Button>
                         </Link>
                         <Link to="/demo">
                             <Button variant="outline" className="w-full sm:w-auto px-10 py-4 text-lg rounded-2xl backdrop-blur-sm border-2 border-brand-primary/20 hover:border-brand-primary transition-all">
-                                Watch Demo
+                                Try Demo
                             </Button>
                         </Link>
                     </div>
@@ -46,7 +48,7 @@ const HomePage: React.FC = () => {
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider">Context-Aware</p>
                         </div>
                         <div>
-                            <p className="text-3xl font-black text-black dark:text-white">Gemini</p>
+                            <p className="text-3xl font-black text-black dark:text-white">AI</p>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-wider">Powered Brain</p>
                         </div>
                         <div className="hidden md:block">
@@ -138,9 +140,9 @@ const HomePage: React.FC = () => {
                     <div className="relative z-10 max-w-3xl mx-auto">
                         <h2 className="text-4xl md:text-6xl font-black mb-8 tracking-tight">Ready to Ace Your Interview?</h2>
                         <p className="text-blue-100 mb-12 text-lg md:text-xl opacity-90 font-medium">Join thousands of candidates who improved their skills with JobAcer.</p>
-                        <Link to="/register">
+                        <Link to={isAuthenticated ? "/dashboard" : "/login"}>
                             <Button variant="outline" className="bg-white text-brand-primary border-white hover:bg-zinc-50 px-12 py-5 text-xl font-black rounded-[2rem] shadow-2xl transition-all hover:scale-105 active:scale-95">
-                                Create Free Account
+                                Get Started
                             </Button>
                         </Link>
                     </div>

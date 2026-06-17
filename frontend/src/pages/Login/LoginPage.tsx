@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 py-8 bg-white dark:bg-black transition-colors duration-300">
             <div className="w-full max-w-md p-6 md:p-10 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-xl bg-white dark:bg-gray-900">
                 <div className="text-center mb-8 md:mb-10">
-                    <h1 className="text-2xl md:text-3xl font-bold text-black dark:text-white mb-2">Welcome Back</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-black dark:text-white mb-2">Welcome</h1>
                     <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Please enter your details to sign in</p>
                 </div>
 

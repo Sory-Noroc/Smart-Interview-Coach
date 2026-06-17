@@ -31,13 +31,13 @@ function NavBar() {
 
     return (
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
-            <div className="flex flex-row items-center justify-between px-4 md:px-8 py-4">
-                <Link to="/" className="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer">
+            <div className="flex flex-row items-center px-4 md:px-8 py-4 gap-10">
+                <Link to="/" className="text-xl md:text-2xl font-extrabold justify-self-start tracking-tight cursor-pointer">
                     Job<span className="text-brand-accent">Acer</span>
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex flex-row items-center gap-4 lg:gap-8 text-gray-600 dark:text-gray-400">
+                <div className="hidden md:flex flex-row items-center justify-self-start gap-4 lg:gap-8 text-gray-600 dark:text-gray-400">
                     <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
                         {isAuthenticated ? "Dashboard" : "Home"}
                     </Link>
@@ -49,7 +49,7 @@ function NavBar() {
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
 
-                <div className="flex flex-row items-center gap-2 md:gap-4">
+                <div className="flex flex-row items-center ml-auto gap-2 md:gap-4">
                     {isAuthenticated && (
                         <Link to="/setup" className="hidden lg:block">
                             <Button variant="primary" className="bg-brand-accent text-white border-brand-accent hover:bg-brand-accent/90">
