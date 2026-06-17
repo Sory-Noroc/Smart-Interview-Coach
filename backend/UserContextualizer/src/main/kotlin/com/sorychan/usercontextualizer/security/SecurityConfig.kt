@@ -24,6 +24,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/llm/v1/demo/**").permitAll()
+                    .requestMatchers("/admin/**").hasAuthority("ADMIN")
                     .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

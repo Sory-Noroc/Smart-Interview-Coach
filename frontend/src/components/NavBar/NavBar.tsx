@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext.tsx";
 import { useAuth } from "../../context/AuthContext.tsx";
 import Button from "../ui/Button.tsx";
+import logo from "../../assets/logo.png";
 import { MoonIcon, SunIcon } from "../ui/Icons.tsx";
 
 const MenuIcon = () => (
@@ -32,20 +33,22 @@ function NavBar() {
     return (
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center px-4 md:px-8 py-4 gap-10">
-                <Link to="/" className="text-xl md:text-2xl font-extrabold justify-self-start tracking-tight cursor-pointer">
-                    Job<span className="text-brand-accent">Acer</span>
-                </Link>
-
+                <div className="flex flex-row items-center gap-4">
+                    <img src={logo} width={60}/>
+                    <Link to="/" className="text-xl md:text-2xl tracking-tight font-extrabold cursor-pointer">
+                        Job<span className="text-brand-accent">Acer</span>
+                    </Link>
+                </div>
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex flex-row items-center justify-self-start gap-4 lg:gap-8 text-gray-600 dark:text-gray-400">
-                    <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
-                        {isAuthenticated ? "Dashboard" : "Home"}
-                    </Link>
                     {isAuthenticated && user?.role === 'ADMIN' && (
                         <Link to="/admin" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium text-red-500 dark:text-red-400">
                             Admin
                         </Link>
                     )}
+                <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
+                    {isAuthenticated ? "Dashboard" : "Home"}
+                </Link>
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
 

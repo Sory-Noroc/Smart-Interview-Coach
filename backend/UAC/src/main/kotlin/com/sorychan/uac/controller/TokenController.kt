@@ -55,7 +55,7 @@ class TokenController(
         val user = userService.authenticate(request.usernameOrEmail, request.password)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Invalid credentials"))
 
-        val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
+        val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name, "userId" to user.id!!))
         val refreshToken = refreshTokenService.createRefreshToken(user.id!!)
         
         return ResponseEntity.ok(AuthResponse(user.id!!, accessToken, refreshToken.token, user.username, user.role.name))
@@ -67,7 +67,7 @@ class TokenController(
             .map { refreshTokenService.verifyExpiration(it) }
             .map { it.user }
             .map { user ->
-                val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name))
+                val accessToken = jwtService.generateToken(user.username, mapOf("role" to user.role.name, "userId" to user.id!!))
                 ResponseEntity.ok(TokenRefreshResponse(accessToken, request.refreshToken))
             }
             .orElseThrow { RuntimeException("Refresh token is not in database!") }

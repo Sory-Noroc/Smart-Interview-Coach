@@ -8,4 +8,10 @@ export default defineConfig({
       react(),
       tailwindcss()
   ],
+  build: {
+    minify: 'esbuild',
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
 })

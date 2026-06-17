@@ -150,12 +150,9 @@ const HomePage: React.FC = () => {
             </section>
 
             {/* Footer */}
-            <footer className="py-20 border-t border-zinc-100 dark:border-zinc-900 text-center bg-white dark:bg-black transition-colors duration-300">
+            <footer className="py-6 border-t border-zinc-100 dark:border-zinc-900 text-center bg-white dark:bg-black transition-colors duration-300">
                 <div className="max-w-6xl mx-auto px-4">
-                    <div className="text-2xl font-black text-black dark:text-white mb-6">
-                        Job<span className="text-brand-accent">Acer</span>
-                    </div>
-                    <p className="text-zinc-500 dark:text-zinc-600 text-sm mb-10 italic">© 2026 JobAcer. Built with Passion & AI.</p>
+                    <p className="text-zinc-500 dark:text-zinc-600 text-sm italic">© 2026 JobAcer.</p>
                 </div>
             </footer>
         </div>

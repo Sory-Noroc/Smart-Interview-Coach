@@ -18,6 +18,10 @@ class JwtService {
         return extractClaim(token, Claims::getSubject)
     }
 
+    fun extractUserId(token: String): Long? {
+        return extractClaim(token) { it["userId"]?.toString()?.toLongOrNull() }
+    }
+
     fun <T> extractClaim(token: String, claimsResolver: (Claims) -> T): T {
         val claims = extractAllClaims(token)
         return claimsResolver(claims)

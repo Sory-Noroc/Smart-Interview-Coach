@@ -87,7 +87,7 @@ const responseErrorInterceptor = async (error: any) => {
             processQueue(err, null);
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = '/login';
+            window.location.href = '/';
             return Promise.reject(err);
         } finally {
             isRefreshing = false;

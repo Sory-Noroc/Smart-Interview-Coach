@@ -6,13 +6,16 @@ import com.sorychan.usercontextualizer.dto.InterviewFeedbackDTO
 import com.sorychan.usercontextualizer.dto.InterviewMessageDTO
 import com.sorychan.usercontextualizer.dto.InterviewSummaryDTO
 import com.sorychan.usercontextualizer.enums.InterviewStatus
+import com.sorychan.usercontextualizer.security.UserPrincipal
 import com.sorychan.usercontextualizer.service.ContextService
 import com.sorychan.usercontextualizer.service.InterviewService
 import com.sorychan.usercontextualizer.service.S3StorageService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -25,9 +28,20 @@ class InterviewController(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
+    private fun getCurrentUser(): UserPrincipal {
+        val auth = SecurityContextHolder.getContext().authentication
+        return auth.principal as UserPrincipal
+    }
+
     @GetMapping("/interviews/{interviewId}/messages")
-    fun getInterviewMessages(@PathVariable interviewId: Long): ResponseEntity<List<InterviewMessageDTO>> {
+    fun getInterviewMessages(@PathVariable interviewId: Long): ResponseEntity<Any> {
         logger.info("GET /interviews/$interviewId/messages called")
+        val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+
+        if (interview.userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this interview.")
+        }
+
         val messages = interviewService.getMessagesByInterviewId(interviewId)
         val dtos = messages.map { msg ->
             InterviewMessageDTO(
@@ -42,9 +56,13 @@ class InterviewController(
 
 
     @GetMapping("/interviews/{interviewId}/feedback")
-    fun getInterviewFeedback(@PathVariable interviewId: Long): ResponseEntity<InterviewFeedbackDTO> {
+    fun getInterviewFeedback(@PathVariable interviewId: Long): ResponseEntity<Any> {
         logger.info("GET /interviews/$interviewId/feedback called")
         val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+
+        if (interview.userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this feedback.")
+        }
 
         if (interview.status != InterviewStatus.COMPLETED || interview.overallGrade == null) {
             return ResponseEntity.noContent().build()
@@ -64,9 +82,14 @@ class InterviewController(
     }
 
     @GetMapping("/interviews/{interviewId}")
-    fun getInterview(@PathVariable interviewId: Long): ResponseEntity<InterviewSummaryDTO> {
+    fun getInterview(@PathVariable interviewId: Long): ResponseEntity<Any> {
         logger.info("GET /interviews/$interviewId called")
         val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+
+        if (interview.userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to this interview.")
+        }
+
         val dto = InterviewSummaryDTO(
             id = interview.id!!,
             userId = interview.userId!!,
@@ -78,8 +101,13 @@ class InterviewController(
     }
 
     @GetMapping("/interviews/user/{userId}")
-    fun getInterviewsByUser(@PathVariable userId: Long): ResponseEntity<List<InterviewSummaryDTO>> {
+    fun getInterviewsByUser(@PathVariable userId: Long): ResponseEntity<Any> {
         logger.info("GET /interviews/user/$userId called")
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have access to these interviews.")
+        }
+
         val interviews = interviewService.getInterviewsByUserId(userId)
         val dtos = interviews.map { interview ->
             InterviewSummaryDTO(
@@ -101,6 +129,10 @@ class InterviewController(
         @RequestParam("file") file: MultipartFile,
         @RequestParam("userId") userId: Long
     ): ResponseEntity<String> {
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.")
+        }
 
         if (file.isEmpty || file.contentType != "application/pdf") {
             return ResponseEntity.badRequest().body("Invalid PDF File.")
@@ -142,6 +174,11 @@ class InterviewController(
         @RequestParam description: String,
         @RequestParam userId: Long
     ): ResponseEntity<String> {
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.")
+        }
+
         val job = Job(
             jobName = jobName,
             description = description,

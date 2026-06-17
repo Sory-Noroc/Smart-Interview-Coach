@@ -9,6 +9,12 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+
+data class UserPrincipal(
+    val id: Long,
+    val username: String
+)
 
 @Component
 class JwtAuthenticationFilter(
@@ -30,16 +36,24 @@ class JwtAuthenticationFilter(
         val username = try {
             jwtService.extractUsername(jwt)
         } catch (e: Exception) {
-            logger.error(e.message)
+            null
+        }
+        val userId = try {
+            jwtService.extractUserId(jwt)
+        } catch (e: Exception) {
             null
         }
 
-        if (username != null && SecurityContextHolder.getContext().authentication == null) {
+        if (username != null && userId != null && SecurityContextHolder.getContext().authentication == null) {
             if (jwtService.isTokenValid(jwt)) {
+                val role = jwtService.extractClaim(jwt) { it["role"]?.toString() }
+                val authorities = if (role != null) listOf(SimpleGrantedAuthority(role)) else emptyList()
+
+                val principal = UserPrincipal(userId, username)
                 val authToken = UsernamePasswordAuthenticationToken(
-                    username,
+                    principal,
                     null,
-                    emptyList() // add roles here later
+                    authorities
                 )
                 authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
                 SecurityContextHolder.getContext().authentication = authToken

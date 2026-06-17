@@ -11,12 +11,14 @@ interface AuthContextType {
     login: (accessToken: string, refreshToken: string, id: number, username: string, role: string, rememberMe: boolean) => void;
     logout: () => void;
     isAuthenticated: boolean;
+    isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         // Helper to check both storage locations
@@ -30,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (idStr && username && role && token) {
             setUser({ id: parseInt(idStr, 10), username, role });
         }
+        setIsLoading(false);
     }, []);
 
     const login = (accessToken: string, refreshToken: string, id: number, username: string, role: string, rememberMe: boolean = false) => {
@@ -51,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isLoading }}>
             {children}
         </AuthContext.Provider>
     );
