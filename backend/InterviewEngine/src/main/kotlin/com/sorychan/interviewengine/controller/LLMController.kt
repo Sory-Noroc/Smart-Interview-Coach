@@ -1,0 +1,196 @@
+package com.sorychan.interviewengine.controller
+
+import com.sorychan.interviewengine.data.Interview
+import com.sorychan.interviewengine.data.InterviewMessage
+import com.sorychan.interviewengine.dto.FirstQuestionDTO
+import com.sorychan.interviewengine.dto.InterviewFeedbackDTO
+import com.sorychan.interviewengine.enums.InterviewStatus
+import com.sorychan.interviewengine.enums.Role
+import com.sorychan.interviewengine.security.UserPrincipal
+import com.sorychan.interviewengine.service.ContextService
+import com.sorychan.interviewengine.service.InterviewService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.client.ChatClient
+import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.chat.messages.Message
+import org.springframework.ai.chat.messages.SystemMessage
+import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.ai.converter.BeanOutputConverter
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.*
+
+@RestController
+@RequestMapping("/llm/v1")
+class LLMController(
+    chatClientBuilder: ChatClient.Builder,
+    private val contextService: ContextService,
+    private val interviewService: InterviewService
+) {
+
+    val MESSAGE_COUNT = 16 // Taking only last xx messages of an interview
+    private val chatClient: ChatClient = chatClientBuilder.build()
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+    private fun getCurrentUser(): UserPrincipal {
+        val auth = SecurityContextHolder.getContext().authentication
+        return auth.principal as UserPrincipal
+    }
+
+    @PostMapping("/interviews")
+    fun createInterview(
+        @RequestParam userId: Long,
+        @RequestParam jobId: Long,
+        @RequestParam name: String,
+        @RequestParam interviewerJob: String
+    ): ResponseEntity<Any> {
+        logger.info("/interviews called with user id: $userId, name: $name")
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.")
+        }
+
+        val userCV = contextService.getLatestCV(userId)
+        val job = contextService.getJobById(jobId)
+
+        val systemContext =  interviewService.injectionProtectionPrompt +
+                 interviewService.getInterviewPrompt(interviewerJob) +
+                 interviewService.concatenateUserCV(userCV?.content) +
+                 interviewService.concatenateJobContext(job)
+
+        val newInterview = Interview(
+            userId = userId,
+            name = name,
+            context = systemContext,
+        )
+        val savedInterview = interviewService.addInterview(newInterview)
+
+        val aiQuestion = this.chatClient.prompt()
+            .messages(listOf(SystemMessage(systemContext), UserMessage("Hello, I am ready for the interview.")))
+            .call()
+            .content() ?: "Thank you for coming! Let's start. Can you tell me about yourself?"
+
+        val firstQuestion = FirstQuestionDTO(savedInterview.id!!, aiQuestion)
+        val aiMessage = InterviewMessage(
+            interview = savedInterview,
+            content = aiQuestion,
+            role = Role.ASSISTANT
+        )
+        interviewService.addMessage(aiMessage)
+        return ResponseEntity.ok(firstQuestion)
+    }
+
+    @PostMapping("/interviews/{interviewId}/user/{userId}")
+    fun answerQuestion(
+        @PathVariable interviewId: Long,
+        @PathVariable userId: Long,
+        @RequestBody userMessage: PromptRequest,
+    ): ResponseEntity<Any> {
+        logger.info("/interviews/$interviewId/user/$userId called (non-streaming)")
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.")
+        }
+
+        val interview = interviewService.getInterview(interviewId) ?: return ResponseEntity.notFound().build()
+        
+        if (interview.userId != userId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not own this interview.")
+        }
+
+        val recentMessage = InterviewMessage(
+            content = userMessage.prompt,
+            interview = interview,
+            role = Role.USER
+        )
+        interviewService.addMessage(recentMessage)
+
+        val messages = mutableListOf<Message>()
+        messages.add(SystemMessage(interview.context))
+
+        val history = interviewService.getMessagesByInterviewId(interviewId).takeLast(MESSAGE_COUNT)
+        history.forEach {
+            if (it.role == Role.USER) messages.add(UserMessage(it.content))
+            else messages.add(AssistantMessage(it.content))
+        }
+
+        val aiResponse = chatClient.prompt()
+            .messages(messages)
+            .call()
+            .content() ?: "Error: No response generated by AI."
+
+        val aiMessage = InterviewMessage(
+            content = aiResponse,
+            interview = interview,
+            role = Role.ASSISTANT
+        )
+        interviewService.addMessage(aiMessage)
+
+        return ResponseEntity.ok(aiResponse)
+    }
+
+    @PostMapping("/interviews/{id}/user/{userId}/finish")
+    fun finishInterview(
+        @PathVariable id: Long,
+        @PathVariable userId: Long
+    ): ResponseEntity<Any> {
+
+        if (userId != getCurrentUser().id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.")
+        }
+
+        val interview = interviewService.getInterview(id) ?: return ResponseEntity.notFound().build()
+        
+        if (interview.userId != userId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not own this interview.")
+        }
+
+        val history = interviewService.getMessagesByInterviewId(id).takeLast(MESSAGE_COUNT)
+
+        val converter = BeanOutputConverter(InterviewFeedbackDTO::class.java)
+
+        val transcript = StringBuilder("--- INTERVIEW TRANSCRIPT START ---\n")
+        history.forEach {
+            val role = if (it.role == Role.USER) "CANDIDATE" else "INTERVIEWER"
+            transcript.append("$role: ${it.content}\n")
+        }
+        transcript.append("--- INTERVIEW TRANSCRIPT END ---")
+        val messages = listOf(
+            SystemMessage(interviewService.getInterviewFeedbackPrompt(converter.format)),
+            UserMessage("Analyze the following transcript and provide the JSON feedback:\n\n$transcript")
+        )
+        logger.info("Generating feedback for interview ID: $id. Transcript size: ${transcript.length} characters.")
+
+        interview.status = InterviewStatus.COMPLETED
+        
+        val feedback = chatClient.prompt()
+            .messages(messages)
+            .call()
+            .content() ?: "Could not generate feedback."
+
+        try {
+            val feedbackJson = converter.convert(feedback)
+
+            interview.technicalScore = feedbackJson?.technicalScore
+            interview.communicationScore = feedbackJson?.communicationScore
+            interview.overallGrade = feedbackJson?.overallGrade
+            interview.strengths = feedbackJson?.strengths?.joinToString(";")
+            interview.weaknesses = feedbackJson?.weaknesses?.joinToString(";")
+            interview.improvementTips = feedbackJson?.improvementTips?.joinToString(";")
+            interview.summary = feedbackJson?.summary
+            
+            interviewService.updateOrAddInterview(interview)
+            
+            return ResponseEntity.ok(feedbackJson)
+        } catch (e: Exception) {
+            logger.error("Feedback conversion failed: ${e.message}")
+            interviewService.updateOrAddInterview(interview)
+            return ResponseEntity.ok(null)
+        }
+    }
+}
+
+// Request DTO for text prompts
+data class PromptRequest(val prompt: String)
