@@ -23,7 +23,7 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/llm/v1/demo/**").permitAll()
+                    .requestMatchers("/actuator/**").hasAuthority("ADMIN")
                     .requestMatchers("/admin/**").hasAuthority("ADMIN")
                     .anyRequest().authenticated()
             }

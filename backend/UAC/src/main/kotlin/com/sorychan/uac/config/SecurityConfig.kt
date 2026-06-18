@@ -47,6 +47,7 @@ class SecurityConfig(
                 auth.requestMatchers(
                     "/uac/v1/auth/**",
                 ).permitAll()
+                auth.requestMatchers("/actuator/**").hasAuthority("ADMIN")
                 auth.requestMatchers("/uac/v1/admin/**").hasAuthority("ADMIN")
                 auth.anyRequest().authenticated()
             }
