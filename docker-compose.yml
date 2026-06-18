@@ -43,11 +43,11 @@ services:
     depends_on:
       - db
 
-  user-contextualizer:
+  interview-engine:
     build:
-      context: ./backend/UserContextualizer
+      context: ./backend/InterviewEngine
       dockerfile: Dockerfile
-    container_name: user-contextualizer-service
+    container_name: interview-engine-service
     ports:
       - "8080:8080"
     environment:
