@@ -9,5 +9,7 @@ backend/InterviewEngine/src/main/kotlin/com/sorychan/usercontextualizer/minioscr
 backend/UAC/target/
 backend/UAC/.idea/
 backend/UAC/HELP.md
-*.dbscript
-*.minioscript
+*dbscript
+*minioscript
+AWS_ROADMAP.md
+backend/InterviewEngine/src/test/
