@@ -1,11 +1,13 @@
 import axios from 'axios';
+const VITE_UAC_URL = import.meta.env.VITE_UAC_URL;
+const VITE_INTERVIEW_URL = import.meta.env.VITE_INTERVIEW_URL;
 
 export const uacApi = axios.create({
-    baseURL: 'http://localhost:8081', // UAC
+    baseURL: VITE_UAC_URL, // UAC
 });
 
 export const llmApi = axios.create({
-    baseURL: 'http://localhost:8080', // UserContextualizer
+    baseURL: VITE_INTERVIEW_URL, // InterviewEngine
 });
 
 const getFromAnyStorage = (key: string) => localStorage.getItem(key) || sessionStorage.getItem(key);
@@ -66,7 +68,7 @@ const responseErrorInterceptor = async (error: any) => {
             if (!refreshToken) throw new Error('No refresh token available');
 
             // Call the refresh endpoint using standard axios to avoid trigger interceptors again
-            const response = await axios.post('http://localhost:8081/uac/v1/auth/refresh', {
+            const response = await axios.post(VITE_UAC_URL + '/uac/v1/auth/refresh', {
                 refreshToken: refreshToken
             });
 
