@@ -23,6 +23,10 @@ resource "aws_subnet" "public_a" {
   availability_zone = "eu-central-1a"
 
   map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public-a"
+  }
 }
 
 # Public Subnet B
@@ -33,6 +37,10 @@ resource "aws_subnet" "public_b" {
   availability_zone = "eu-central-1b"
 
   map_public_ip_on_launch = true
+  
+  tags = {
+    Name = "public-b"
+  }
 }
 
 # Private Subnet A
@@ -41,6 +49,10 @@ resource "aws_subnet" "private_a" {
   cidr_block = "10.0.11.0/24"
 
   availability_zone = "eu-central-1a"
+  
+  tags = {
+    Name = "private-a"
+  }
 }
 
 # Private Subnet B
@@ -49,6 +61,10 @@ resource "aws_subnet" "private_b" {
   cidr_block = "10.0.12.0/24"
 
   availability_zone = "eu-central-1b"
+  
+  tags = {
+    Name = "private-b"
+  }
 }
 
 # NAT IP
@@ -70,6 +86,10 @@ resource "aws_nat_gateway" "main" {
 # Public Routing Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "public-rt"
+  }
 }
 resource "aws_route" "public_internet" {
   route_table_id = aws_route_table.public.id
@@ -82,6 +102,9 @@ resource "aws_route" "public_internet" {
 # Private Routing Table 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "private-rt"
+  }
 }
 resource "aws_route" "private_nat" {
   route_table_id = aws_route_table.private.id
@@ -89,4 +112,22 @@ resource "aws_route" "private_nat" {
   destination_cidr_block = "0.0.0.0/0"
 
   nat_gateway_id = aws_nat_gateway.main.id
+}
+
+# Routing Table Associations
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
+}
+resource "aws_route_table_association" "private_a" {
+  subnet_id      = aws_subnet.private_a.id
+  route_table_id = aws_route_table.private.id
+}
+resource "aws_route_table_association" "private_b" {
+  subnet_id      = aws_subnet.private_b.id
+  route_table_id = aws_route_table.private.id
 }

@@ -1,5 +1,6 @@
 package com.sorychan.interviewengine.security
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -13,7 +14,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthFilter: JwtAuthenticationFilter
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+
+    @Value("\${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
+    private val allowedOrigins: List<String>
 ) {
 
     @Bean
@@ -23,7 +27,7 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/actuator/**").hasAuthority("ADMIN")
+                    .requestMatchers("/actuator/**").permitAll()
                     .requestMatchers("/admin/**").hasAuthority("ADMIN")
                     .anyRequest().authenticated()
             }
@@ -36,9 +40,9 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost:5173", "http://127.0.0.1:5173")
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        configuration.allowedOrigins = allowedOrigins
         configuration.allowedHeaders = listOf("*")
+        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
         configuration.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

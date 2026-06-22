@@ -1,4 +1,4 @@
-*.env
+*.env*
 G*I.md
 backend/InterviewEngine/target/
 backend/InterviewEngine/.idea/
@@ -11,5 +11,9 @@ backend/UAC/.idea/
 backend/UAC/HELP.md
 *dbscript
 *minioscript
-AWS_ROADMAP.md
+AWS*.md
 backend/InterviewEngine/src/test/
+cloud/.terraform*
+cloud/terraform.tfvars
+*tfstate*
+secrets_script*

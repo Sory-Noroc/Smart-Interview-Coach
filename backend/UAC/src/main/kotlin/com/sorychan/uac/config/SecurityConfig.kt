@@ -1,5 +1,6 @@
 package com.sorychan.uac.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -20,7 +21,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val userDetailsService: UserDetailsService
+    private val userDetailsService: UserDetailsService,
+
+    @Value("\${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
+    private val allowedOrigins: List<String>
 ) {
 
     @Bean
@@ -44,10 +48,8 @@ class SecurityConfig(
             .authenticationProvider(authenticationProvider(passwordEncoder = passwordEncoder))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers(
-                    "/uac/v1/auth/**",
-                ).permitAll()
-                auth.requestMatchers("/actuator/**").hasAuthority("ADMIN")
+                auth.requestMatchers("/uac/v1/auth/**").permitAll()
+                auth.requestMatchers("/actuator/**").permitAll()
                 auth.requestMatchers("/uac/v1/admin/**").hasAuthority("ADMIN")
                 auth.anyRequest().authenticated()
             }
@@ -60,9 +62,10 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost:5173", "http://127.0.0.1:5173")
+        configuration.allowedOrigins = allowedOrigins
+
+        configuration.allowedHeaders = listOf("*")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        configuration.allowedHeaders = listOf("Authorization", "Content-Type", "X-Requested-With", "Accept")
         configuration.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
