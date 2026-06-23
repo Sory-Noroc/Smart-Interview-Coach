@@ -14,6 +14,11 @@ variable "db_password" {
   sensitive = true
 }
 
+variable "admin_password" {
+  type        = string
+  sensitive   = true
+}
+
 variable "jwt_secret" {
   type        = string
   sensitive   = true

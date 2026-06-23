@@ -34,7 +34,7 @@ class UserService(
             .build()
     }
 
-    fun registerUser(user: User): User {
+    fun registerUser(user: User, verification: Boolean): User {
         if (userRepository.existsByUsername(user.username)) {
             throw RuntimeException("Username already exists")
         }
@@ -47,7 +47,6 @@ class UserService(
         } catch (ex: NullPointerException) {
             throw RuntimeException("Password hash exception")
         }
-
         val token = UUID.randomUUID().toString().take(6).uppercase()
         user.verificationToken = token
         user.verificationTokenExpiry = LocalDateTime.now().plusDays(1)
@@ -55,8 +54,9 @@ class UserService(
         user.isVerified = false
 
         val savedUser = userRepository.save(user)
-        emailService.sendVerificationEmail(savedUser.email, token)
-        
+        if (verification) {
+            emailService.sendVerificationEmail(savedUser.email, token)
+        }
         return savedUser
     }
 

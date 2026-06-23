@@ -32,7 +32,7 @@ class TokenController(
             lastName = request.lastName,
             passwordHash = request.password
         )
-        userService.registerUser(user)
+        userService.registerUser(user, true)
         return ResponseEntity.status(HttpStatus.CREATED).body(mapOf("message" to "Registration successful. Please check your email for the verification code."))
     }
 

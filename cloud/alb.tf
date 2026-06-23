@@ -143,7 +143,7 @@ resource "aws_lb_listener_rule" "interview" {
     path_pattern {
       values = [
         "/llm/*", 
-        "/admin/*/metrics/*", 
+        "/admin/*/metrics*", 
         "/interview/*",
       ]
     }

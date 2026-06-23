@@ -20,7 +20,7 @@ interface AIMetricRepository : JpaRepository<AIMetric, Long> {
             COUNT(*) FILTER (WHERE status_code = 429) as rateLimitCount,
             COUNT(*) FILTER (WHERE status_code >= 500) as errorCount,
             COUNT(DISTINCT COALESCE(CAST(user_id AS TEXT), ip_address)) as uniqueUsers
-        FROM ai_metrics
+        FROM interview.ai_metrics
         WHERE timestamp BETWEEN :start AND :end
         GROUP BY minute
         ORDER BY minute ASC

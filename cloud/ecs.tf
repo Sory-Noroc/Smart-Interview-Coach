@@ -48,20 +48,27 @@ resource "aws_ecs_task_definition" "uac" {
           value = "pytechie02@gmail.com"
         },
         {
+          name  = "CORS_ALLOWED_ORIGINS"
+          value = var.frontend_url
+        }
+      ]
+      
+      secrets = [ 
+        {
           name      = "JWT_SECRET"
-          value = var.jwt_secret
+          valueFrom = aws_secretsmanager_secret.jwt_secret.arn
         },
         {
           name      = "DB_PASSWORD"
-          value = var.db_password
+          valueFrom = aws_secretsmanager_secret.db_password.arn
         },
         {
           name      = "MAIL_PASSWORD"
-          value = var.mail_password
+          valueFrom = aws_secretsmanager_secret.mail_password.arn
         },
         {
-          name  = "CORS_ALLOWED_ORIGINS"
-          value = var.frontend_url
+            name  = "APP_ADMIN_PASSWORD"
+            valueFrom = aws_secretsmanager_secret.admin_password.arn
         }
       ]
       
@@ -110,24 +117,27 @@ resource "aws_ecs_task_definition" "interview" {
           value = "postgres"
         },
         {
-          name      = "JWT_SECRET"
-          value = var.jwt_secret
-        },
-        {
-          name      = "DB_PASSWORD"
-          value = var.db_password
+          name  = "CORS_ALLOWED_ORIGINS"
+          value = var.frontend_url
         },
         {
             name = "INTERVIEW_S3_URL"
             value = var.interview_s3_url
+        }
+
+      ]
+      secrets = [
+        {
+          name      = "JWT_SECRET"
+          valueFrom = aws_secretsmanager_secret.jwt_secret.arn
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = aws_secretsmanager_secret.db_password.arn
         },
         {
             name = "GOOGLE_API_KEY"
-            value = var.google_api_key
-        },
-        {
-          name  = "CORS_ALLOWED_ORIGINS"
-          value = var.frontend_url
+            valueFrom = aws_secretsmanager_secret.google_api_key.arn
         }
       ]
       
@@ -150,7 +160,7 @@ resource "aws_ecs_service" "uac" {
 
   task_definition = aws_ecs_task_definition.uac.arn
 
-  desired_count = 1
+  desired_count = 2
 
   launch_type = "FARGATE"
 
@@ -188,7 +198,7 @@ resource "aws_ecs_service" "interview" {
 
   task_definition = aws_ecs_task_definition.interview.arn
 
-  desired_count = 1
+  desired_count = 2
 
   launch_type = "FARGATE"
 

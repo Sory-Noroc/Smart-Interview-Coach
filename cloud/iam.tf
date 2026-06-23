@@ -57,6 +57,28 @@ resource "aws_iam_policy" "interview_s3_policy" {
   })
 }
 
+# Secrets Access for injection
+resource "aws_iam_policy" "secrets_access" {
+  name = "ecs-secrets-access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue"
+      ]
+      Resource = [
+          aws_secretsmanager_secret.db_password.arn,
+          aws_secretsmanager_secret.jwt_secret.arn,
+          aws_secretsmanager_secret.google_api_key.arn,
+          aws_secretsmanager_secret.mail_password.arn,
+          aws_secretsmanager_secret.admin_password.arn
+      ]
+    }]
+  })
+}
+
 # Policy Attachments
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
   role = aws_iam_role.ecs_execution.name
@@ -67,4 +89,9 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 resource "aws_iam_role_policy_attachment" "interview_s3_attach" {
   role       = aws_iam_role.interview_task.name
   policy_arn = aws_iam_policy.interview_s3_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_secrets_attach" {
+  role       = aws_iam_role.ecs_execution.name
+  policy_arn = aws_iam_policy.secrets_access.arn
 }

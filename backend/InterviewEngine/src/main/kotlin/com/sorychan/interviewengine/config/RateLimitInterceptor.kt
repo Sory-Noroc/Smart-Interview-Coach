@@ -12,7 +12,7 @@ import org.springframework.web.servlet.HandlerInterceptor
 class RateLimitInterceptor(private val rateLimitService: RateLimitService) : HandlerInterceptor {
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        if (request.requestURI.contains("/demo/")) return true
+        if (request.requestURI.contains("/metrics")) return true
 
         val authentication = SecurityContextHolder.getContext().authentication
         val userId = authentication?.name ?: request.remoteAddr // IP Fallback for unauthenticated users

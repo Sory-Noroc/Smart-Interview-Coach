@@ -29,7 +29,7 @@ class AIMetricService(private val aiMetricRepository: AIMetricRepository) {
     fun getAggregatedMetrics(start: LocalDateTime, end: LocalDateTime): List<AIMetricSummaryDTO> {
         val rawResults = aiMetricRepository.findAggregatedMetrics(start, end)
         
-        // Mapam rezultatele din DB intr-un dictionar pentru acces rapid
+        // Map to dictionary for fast access
         val dataMap = rawResults.associate { row ->
             val minute = (row[0] as Timestamp).toLocalDateTime()
             minute to AIMetricSummaryDTO(
@@ -42,7 +42,7 @@ class AIMetricService(private val aiMetricRepository: AIMetricRepository) {
             )
         }
 
-        // Generam lista completa (inclusiv minutele cu 0 cereri)
+        // Generating the full list
         val summaries = mutableListOf<AIMetricSummaryDTO>()
         var current = start.truncatedTo(ChronoUnit.MINUTES)
         val limit = end.truncatedTo(ChronoUnit.MINUTES)
