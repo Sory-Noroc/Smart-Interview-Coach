@@ -34,7 +34,7 @@ function NavBar() {
         <nav className="relative bg-white dark:bg-black text-black dark:text-white border-b border-gray-100 dark:border-gray-900 shadow-sm transition-colors duration-300 z-50">
             <div className="flex flex-row items-center px-4 md:px-8 py-4 gap-10">
                 <div className="flex flex-row items-center gap-4">
-                    <img src={logo} width={60}/>
+                    <img src={logo} width={60} />
                     <Link to="/" className="text-xl md:text-2xl tracking-tight font-extrabold cursor-pointer">
                         Job<span className="text-brand-accent">Acer</span>
                     </Link>
@@ -46,9 +46,9 @@ function NavBar() {
                             Admin
                         </Link>
                     )}
-                <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
-                    {isAuthenticated ? "Dashboard" : "Home"}
-                </Link>
+                    <Link to={isAuthenticated ? "/dashboard" : "/"} className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">
+                        {isAuthenticated ? "Dashboard" : "Home"}
+                    </Link>
                     <Link to="/demo" className="hover:text-black dark:hover:text-white transition-colors cursor-pointer font-medium">Demo</Link>
                 </div>
 
@@ -109,7 +109,6 @@ function NavBar() {
             {isMenuOpen && (
                 <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-black border-t border-gray-100 dark:border-gray-900 flex flex-col p-4 gap-4 shadow-xl animate-in slide-in-from-top duration-200">
                     <Link to="/" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">Home</Link>
-                    <Link to="/about" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">About</Link>
                     <Link to="/demo" onClick={() => setIsMenuOpen(false)} className="py-2 text-lg font-medium border-b border-gray-50 dark:border-gray-100">Demo</Link>
                     <div className="flex flex-col gap-3 pt-2">
                         {isAuthenticated ? (
