@@ -1,6 +1,6 @@
 resource "aws_appautoscaling_target" "uac" {
-  max_capacity       = 4
-  min_capacity       = 2
+  max_capacity       = 2
+  min_capacity       = 1
 
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.uac.name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -8,8 +8,8 @@ resource "aws_appautoscaling_target" "uac" {
 }
 
 resource "aws_appautoscaling_target" "interview" {
-  max_capacity       = 4
-  min_capacity       = 2
+  max_capacity       = 2
+  min_capacity       = 1
 
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.interview.name}"
   scalable_dimension = "ecs:service:DesiredCount"

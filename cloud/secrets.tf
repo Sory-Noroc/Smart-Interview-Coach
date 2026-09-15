@@ -1,42 +1,22 @@
 # Secrets Manager
 resource "aws_secretsmanager_secret" "db_password" {
   name = "jobacer/db_password"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret" "admin_password" {
   name = "jobacer/admin_password"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret" "jwt_secret" {
   name = "jobacer/jwt_secret"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret" "mail_password" {
   name = "jobacer/mail_password"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret" "google_api_key" {
   name = "jobacer/google_api_key"
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {

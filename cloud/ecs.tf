@@ -160,7 +160,7 @@ resource "aws_ecs_service" "uac" {
 
   task_definition = aws_ecs_task_definition.uac.arn
 
-  desired_count = 2
+  desired_count = 1
 
   launch_type = "FARGATE"
 
@@ -198,7 +198,7 @@ resource "aws_ecs_service" "interview" {
 
   task_definition = aws_ecs_task_definition.interview.arn
 
-  desired_count = 2
+  desired_count = 1
 
   launch_type = "FARGATE"
 
