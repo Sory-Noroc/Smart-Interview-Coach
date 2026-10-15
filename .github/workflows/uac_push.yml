@@ -26,10 +26,12 @@ jobs:
           cache: 'maven'
 
       - name: Make Maven Wrapper Executable
-        run: chmod +x ./backend/UAC/mvnw
+        working-directory: ./backend/UAC
+        run: chmod +x ./mvnw
 
       - name: Run Spring Boot Tests
-        run: ./backend/UAC/mvnw clean verify
+        working-directory: ./backend/UAC
+        run: ./mvnw clean verify
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
