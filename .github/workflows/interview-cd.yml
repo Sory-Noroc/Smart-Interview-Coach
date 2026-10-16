@@ -1,0 +1,65 @@
+name: Build and Push Interview microservice to ECR
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/InterviewEngine/**'
+
+permissions:
+  id-token: write
+  contents: read
+  
+jobs:
+  test-interview:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::092466876239:role/github-actions-ecs-deploy-role
+          aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        working-directory: ./backend/InterviewEngine
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: interview-engine
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # ADDED: Deploy the pushed image to ECS
+      - name: Download active task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition interview \
+            --query taskDefinition > task-definition.json
+
+      - name: Render new image into task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: interview 
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: interview
+          cluster: jobacer-cluster
+          wait-for-service-stability: true
