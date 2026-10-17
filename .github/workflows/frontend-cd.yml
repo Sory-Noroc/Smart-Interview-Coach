@@ -47,8 +47,8 @@ jobs:
         aws s3 sync dist/ s3://jobacer-frontend/ --delete
 
   #  After running the app and seeing the Cloudfront dist id, add the invalidation
-  #   - name: Invalidate CloudFront Cache
-  #     run: |
-  #       aws cloudfront create-invalidation \
-  #         --distribution-id CLOUDFRONT_DIST_ID \
-  #         --paths "/*"
+    - name: Invalidate CloudFront Cache
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id CLOUDFRONT_DIST_ID \
+          --paths "/*"
