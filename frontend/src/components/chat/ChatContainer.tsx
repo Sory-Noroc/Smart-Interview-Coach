@@ -25,7 +25,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({ messages, isTyping }) => 
     return (
         <div 
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 md:p-6 space-y-2 scroll-smooth"
+            className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 space-y-2 scroll-smooth"
         >
             {messages.map((msg) => (
                 <ChatBubble 

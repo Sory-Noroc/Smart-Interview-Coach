@@ -27,7 +27,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
     return (
         <form 
             onSubmit={handleSubmit}
-            className="flex flex-row items-center gap-2 p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
+            className="fixed bottom-0 left-0 right-0 w-full z-50 flex flex-row items-center gap-2 p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
         >
             <input
                 ref={inputRef}
