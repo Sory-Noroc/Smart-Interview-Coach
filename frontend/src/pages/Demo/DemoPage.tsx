@@ -64,9 +64,9 @@ const DemoPage: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-73px)] bg-white dark:bg-black transition-colors duration-300">
+        <div className="flex flex-col bg-white dark:bg-black transition-colors duration-300">
 
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/80 dark:bg-black/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/80 dark:bg-black/80 backdrop-blur-md">
                 <div>
                     <h2 className="text-xl font-bold text-black dark:text-white">Demo Interview</h2>
                     <p className="text-xs text-brand-primary font-semibold uppercase tracking-wider">Simulation Mode</p>
@@ -79,9 +79,7 @@ const DemoPage: React.FC = () => {
 
             <ChatContainer messages={messages} isTyping={isTyping} />
 
-            <div className="max-w-4xl w-full mx-auto">
-                <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
-            </div>
+            <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
         </div>
     );
 };
