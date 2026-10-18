@@ -97,7 +97,6 @@ describe('AuthContext', () => {
     it('throws an error if useAuth is used outside of AuthProvider', () => {
         // Temporarily suppress console.error so the terminal doesn't look messy during the expected throw
         const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
         // Render WITHOUT the wrapper
         expect(() => renderHook(() => useAuth())).toThrow(
             'useAuth must be used within an AuthProvider'
