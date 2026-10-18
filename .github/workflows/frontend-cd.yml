@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -50,5 +51,6 @@ jobs:
     - name: Invalidate CloudFront Cache
       run: |
         aws cloudfront create-invalidation \
-          --distribution-id CLOUDFRONT_DIST_ID \
+          --distribution-id EXCDNJTOCWW3N \
           --paths "/*"
+      # DIST ID has to be changed on reconstruction of the infrastructure
