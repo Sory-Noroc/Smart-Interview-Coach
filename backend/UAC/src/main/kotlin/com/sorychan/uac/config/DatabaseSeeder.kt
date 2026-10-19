@@ -7,9 +7,11 @@ import com.sorychan.uac.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("!test")
 class DatabaseSeeder (
         private val userService: UserService,
         private val userRepository: UserRepository
