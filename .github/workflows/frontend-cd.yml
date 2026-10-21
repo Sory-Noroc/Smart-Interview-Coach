@@ -35,6 +35,9 @@ jobs:
       run: npm ci
 
     - name: Build React App
+      env:
+        VITE_INTERVIEW_URL: ${{secrets.VITE_INTERVIEW_URL}}
+        VITE_UAC_URL: ${{secrets.VITE_UAC_URL}}
       run: npm run build
 
     - name: Configure AWS Credentials
